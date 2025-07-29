@@ -450,7 +450,7 @@ export function NoteWisePage() {
       </main>
 
       <footer className="text-center p-4 text-sm text-muted-foreground">
-        Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
+        Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
       </footer>
       
       {/* Dialog for AI Summary */}
