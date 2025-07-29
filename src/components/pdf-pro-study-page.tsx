@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, ChangeEvent, useEffect, FormEvent } from 'react';
 import {
   UploadCloud,
   FileText,
@@ -276,7 +276,8 @@ export function PdfProStudyPage() {
     setSmartNotes(null);
   };
   
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = (e: FormEvent) => {
+    e.preventDefault();
     if (!quiz || !quizStartTime) return;
     const endTime = Date.now();
     setQuizDuration(Math.round((endTime - quizStartTime) / 1000));
@@ -461,11 +462,12 @@ export function PdfProStudyPage() {
             <DialogDescription>Test your knowledge based on the document summary.</DialogDescription>
           </DialogHeader>
           
+          <form onSubmit={handleSubmitQuiz}>
             {!quiz && !isQuizLoading && (
               <div className="flex flex-col items-center gap-4 py-8">
                   <Label htmlFor="num-questions">Number of Questions</Label>
                   <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" placeholder="e.g., 5" className="w-48"/>
-                  <Button onClick={handleGenerateQuiz} disabled={isQuizLoading || !numQuestions} className="w-48">
+                  <Button type="button" onClick={handleGenerateQuiz} disabled={isQuizLoading || !numQuestions} className="w-48">
                     {isQuizLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
                     Generate Quiz
                   </Button>
@@ -486,7 +488,7 @@ export function PdfProStudyPage() {
                         const isCorrect = q.answer === opt;
                         const isSubmitted = quizScore !== null;
                         return (
-                        <Button key={j} variant="outline" className={cn("w-full justify-start text-left h-auto py-2", 
+                        <Button type="button" key={j} variant="outline" className={cn("w-full justify-start text-left h-auto py-2", 
                           isSelected && "border-primary",
                           isSubmitted && isCorrect && "bg-green-500/20 border-green-500",
                           isSubmitted && isSelected && !isCorrect && "bg-red-500/20 border-red-500"
@@ -513,7 +515,7 @@ export function PdfProStudyPage() {
             )}
 
           {quiz && (
-            <DialogFooter className="flex-col items-stretch gap-4 sm:flex-col sm:items-stretch">
+            <DialogFooter className="flex-col items-stretch gap-4 sm:flex-col sm:items-stretch mt-4">
                {quizScore !== null ? (
                 <div className="p-4 bg-muted rounded-lg text-center">
                   <p className="text-lg font-bold">Your Score: {quizScore}/{quiz.length}</p>
@@ -526,19 +528,20 @@ export function PdfProStudyPage() {
                        </ul>
                     </div>
                   )}
-                  <Button onClick={handleGenerateQuiz} className="mt-4 w-full" variant="secondary">
+                  <Button onClick={handleGenerateQuiz} className="mt-4 w-full" variant="secondary" type="button">
                      <RefreshCw className="w-4 h-4 mr-2"/>
                      Regenerate Quiz
                   </Button>
                 </div>
                ) : (
-                <Button onClick={handleSubmitQuiz} disabled={Object.keys(userAnswers).length !== quiz.length}>
+                <Button type="submit" disabled={Object.keys(userAnswers).length !== quiz.length}>
                   Submit Quiz
                 </Button>
                )
               }
             </DialogFooter>
           )}
+          </form>
         </DialogContent>
       </Dialog>
       
