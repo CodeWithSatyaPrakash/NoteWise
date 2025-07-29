@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
@@ -17,6 +15,9 @@ import {
   Sparkles,
   Clipboard,
   Lightbulb,
+  Copy,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
 import { generateMcqQuiz } from '@/ai/flows/generate-mcq-quiz';
 import { realTimeAIInteraction } from '@/ai/flows/real-time-ai-interaction';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
+import { generateFlashcards, GenerateFlashcardsOutput } from '@/ai/flows/generate-flashcards';
 
 type QuizItem = {
   question: string;
@@ -46,7 +48,9 @@ type QnaMessage = {
   content: string;
 };
 
-type FeatureDialog = 'summary' | 'quiz' | 'qna' | null;
+type Flashcard = GenerateFlashcardsOutput['flashcards'][0];
+
+type FeatureDialog = 'summary' | 'quiz' | 'qna' | 'flashcards' | null;
 
 const isOverloadedError = (e: any) => {
     return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'));
@@ -74,6 +78,12 @@ export function PdfProStudyPage() {
 
   const [isTtsLoading, setIsTtsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [flashcards, setFlashcards] = useState<Flashcard[] | null>(null);
+  const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+
 
   const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
 
@@ -156,6 +166,28 @@ export function PdfProStudyPage() {
       setIsQuizLoading(false);
     }
   };
+  
+  const handleGenerateFlashcards = async () => {
+    if (!summary) return;
+    setIsFlashcardLoading(true);
+    setFlashcards(null);
+    setCurrentCardIndex(0);
+    setIsCardFlipped(false);
+    try {
+      const result = await generateFlashcards({ pdfText: summary });
+      setFlashcards(result.flashcards);
+    } catch (e) {
+      if (isOverloadedError(e)) {
+        toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate flashcards. Please try again.' });
+      }
+      console.error(e);
+    } finally {
+      setIsFlashcardLoading(false);
+    }
+  };
+
 
   const handleAskQuestion = async () => {
     if (!summary || !qnaInputRef.current?.value.trim()) return;
@@ -214,6 +246,7 @@ export function PdfProStudyPage() {
     setNumQuestions(5);
     setReviewTopics([]);
     setActiveDialog(null);
+    setFlashcards(null);
   };
   
   const handleSubmitQuiz = () => {
@@ -235,6 +268,19 @@ export function PdfProStudyPage() {
       title: 'Quiz Submitted!',
       description: `You scored ${score} out of ${quiz.length}.`,
     });
+  };
+  
+  const handleFlashcardNav = (direction: 'prev' | 'next') => {
+    setIsCardFlipped(false);
+    setTimeout(() => {
+      setCurrentCardIndex(prev => {
+        if (direction === 'next') {
+          return (prev + 1) % (flashcards?.length || 1);
+        } else {
+          return (prev - 1 + (flashcards?.length || 1)) % (flashcards?.length || 1);
+        }
+      });
+    }, 150);
   };
 
   const Uploader = () => (
@@ -286,12 +332,14 @@ export function PdfProStudyPage() {
       <div className="relative w-[600px] h-[500px]">
         {/* SVG Lines */}
         <svg className="absolute w-full h-full" style={{ top: 0, left: 0 }}>
-          {/* Line to top node */}
-          <line x1="50%" y1="50%" x2="50%" y2="66" stroke="hsl(var(--border))" strokeWidth="2" />
-          {/* Line to left node */}
-          <line x1="50%" y1="50%" x2="66" y2="50%" stroke="hsl(var(--border))" strokeWidth="2" />
-          {/* Line to right node */}
-          <line x1="50%" y1="50%" x2="calc(100% - 66px)" y2="50%" stroke="hsl(var(--border))" strokeWidth="2" />
+            {/* Line to top node */}
+            <line x1="50%" y1="50%" x2="50%" y2="66" stroke="hsl(var(--border))" strokeWidth="2" />
+            {/* Line to top-left node */}
+            <line x1="50%" y1="50%" x2="calc(15%)" y2="calc(25%)" stroke="hsl(var(--border))" strokeWidth="2" />
+            {/* Line to bottom-left node */}
+            <line x1="50%" y1="50%" x2="calc(25%)" y2="calc(100% - 66px)" stroke="hsl(var(--border))" strokeWidth="2" />
+            {/* Line to bottom-right node */}
+            <line x1="50%" y1="50%" x2="calc(100% - 140px)" y2="calc(100% - 66px)" stroke="hsl(var(--border))" strokeWidth="2" />
         </svg>
         
         {/* Central Hub */}
@@ -305,13 +353,16 @@ export function PdfProStudyPage() {
         
         {/* Feature Nodes */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2">
-          <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} />
+            <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} />
         </div>
-        <div className="absolute top-1/2 left-0 -translate-y-1/2">
-          <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} />
+        <div className="absolute top-1/4 left-[5%]">
+            <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} />
         </div>
-        <div className="absolute top-1/2 right-0 -translate-y-1/2">
-          <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} />
+        <div className="absolute bottom-0 left-1/4 -translate-x-1/2">
+            <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} />
+        </div>
+        <div className="absolute bottom-0 right-0">
+            <FeatureNode icon={Copy} title="Flashcards" onClick={() => setActiveDialog('flashcards')} />
         </div>
 
       </div>
@@ -494,6 +545,58 @@ export function PdfProStudyPage() {
              </div>
           </DialogFooter>
         </DialogContent>
+      </Dialog>
+      
+      {/* Dialog for Flashcards */}
+      <Dialog open={activeDialog === 'flashcards'} onOpenChange={() => setActiveDialog(null)}>
+          <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2"><Copy className="text-primary"/> Flashcard Generator</DialogTitle>
+                  <DialogDescription>Review key concepts with generated flashcards.</DialogDescription>
+              </DialogHeader>
+              
+              {!flashcards && !isFlashcardLoading && (
+                  <div className="flex flex-col items-center gap-4 py-8">
+                      <p className="text-center text-muted-foreground">Generate flashcards based on the document's summary.</p>
+                      <Button onClick={handleGenerateFlashcards} disabled={isFlashcardLoading}>
+                          {isFlashcardLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                          Generate Flashcards
+                      </Button>
+                  </div>
+              )}
+
+              {isFlashcardLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+
+              {flashcards && (
+                  <div>
+                      <div className="relative h-64 w-full cursor-pointer" style={{ perspective: '1000px' }} onClick={() => setIsCardFlipped(!isCardFlipped)}>
+                          <div className={cn("absolute h-full w-full rounded-lg shadow-lg transition-transform duration-500", isCardFlipped ? '[transform:rotateY(180deg)]' : '')} style={{ transformStyle: 'preserve-3d' }}>
+                              {/* Front */}
+                              <div className="absolute h-full w-full flex items-center justify-center p-6 bg-card border rounded-lg" style={{ backfaceVisibility: 'hidden' }}>
+                                  <p className="text-center text-lg font-semibold">{flashcards[currentCardIndex].front}</p>
+                              </div>
+                              {/* Back */}
+                              <div className="absolute h-full w-full flex items-center justify-center p-6 bg-card border rounded-lg" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                                  <p className="text-center">{flashcards[currentCardIndex].back}</p>
+                              </div>
+                          </div>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between">
+                          <Button variant="outline" size="icon" onClick={() => handleFlashcardNav('prev')}><ChevronLeft /></Button>
+                          <p className="text-sm text-muted-foreground">{currentCardIndex + 1} / {flashcards.length}</p>
+                          <Button variant="outline" size="icon" onClick={() => handleFlashcardNav('next')}><ChevronRight /></Button>
+                      </div>
+                  </div>
+              )}
+               {flashcards && (
+                 <DialogFooter className="mt-4">
+                     <Button onClick={handleGenerateFlashcards} variant="secondary">
+                         <RefreshCw className="w-4 h-4 mr-2" />
+                         Regenerate
+                     </Button>
+                 </DialogFooter>
+               )}
+          </DialogContent>
       </Dialog>
       
       <audio ref={audioRef} className="hidden" />
