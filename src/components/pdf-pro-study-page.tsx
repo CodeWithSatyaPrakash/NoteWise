@@ -679,10 +679,12 @@ export function PdfProStudyPage() {
             <DialogDescription>Your structured study notes, ready for review.</DialogDescription>
           </DialogHeader>
           
-          {!smartNotes && !isSmartNotesLoading && (
+          {isSmartNotesLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+          
+          {!isSmartNotesLoading && !smartNotes && (
               <div className="flex flex-col items-center gap-4 py-8">
                   <p className="text-center text-muted-foreground">Generate structured notes from the document's summary.</p>
-                  <RadioGroup defaultValue="short" className="flex gap-4" onValueChange={(value: 'short' | 'long') => setNoteLength(value)}>
+                  <RadioGroup value={noteLength} className="flex gap-4" onValueChange={(value: 'short' | 'long') => setNoteLength(value)}>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="short" id="short" />
                         <Label htmlFor="short">Short Notes (UG/Revision)</Label>
@@ -698,8 +700,6 @@ export function PdfProStudyPage() {
                   </Button>
               </div>
           )}
-
-          {isSmartNotesLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
           
           {smartNotes && (
             <>
@@ -708,14 +708,28 @@ export function PdfProStudyPage() {
                   <ReactMarkdown>{smartNotes}</ReactMarkdown>
                 </div>
               </ScrollArea>
-              <DialogFooter className="gap-2 sm:justify-start">
-                 <Button variant="ghost" size="sm" onClick={() => smartNotes && navigator.clipboard.writeText(smartNotes)}>
-                    <Clipboard className="w-4 h-4 mr-2" /> Copy
-                 </Button>
-                 <Button onClick={handleGenerateSmartNotes} variant="secondary" size="sm">
-                     <RefreshCw className="w-4 h-4 mr-2"/>
-                     Regenerate
-                  </Button>
+              <DialogFooter className="gap-2 sm:justify-start mt-4">
+                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+                    <RadioGroup value={noteLength} className="flex gap-4" onValueChange={(value: 'short' | 'long') => setNoteLength(value)}>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="short" id="short-regen" />
+                            <Label htmlFor="short-regen">Short</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="long" id="long-regen" />
+                            <Label htmlFor="long-regen">Long</Label>
+                          </div>
+                      </RadioGroup>
+                      <div className="flex gap-2 sm:ml-auto">
+                        <Button variant="ghost" size="sm" onClick={() => smartNotes && navigator.clipboard.writeText(smartNotes)}>
+                            <Clipboard className="w-4 h-4 mr-2" /> Copy
+                        </Button>
+                        <Button onClick={handleGenerateSmartNotes} variant="secondary" size="sm" disabled={isSmartNotesLoading}>
+                            {isSmartNotesLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2"/>}
+                            Regenerate
+                        </Button>
+                      </div>
+                 </div>
               </DialogFooter>
             </>
           )}
