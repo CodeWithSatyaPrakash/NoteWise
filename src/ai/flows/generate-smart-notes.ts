@@ -14,6 +14,7 @@ const GenerateSmartNotesInputSchema = z.object({
   pdfText: z
     .string()
     .describe('The text content extracted from the document.'),
+  noteLength: z.enum(['short', 'long']).default('short').describe("The desired length of the notes: 'short' for a summary, 'long' for detailed notes."),
 });
 export type GenerateSmartNotesInput = z.infer<typeof GenerateSmartNotesInputSchema>;
 
@@ -32,9 +33,15 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateSmartNotesOutputSchema},
   prompt: `You are an expert in creating structured and student-friendly study notes from a text document.
 
-  Based on the provided text, generate concise study notes. The notes should be well-organized using headings and bullet points.
-  
+  Based on the provided text, generate study notes. The notes should be well-organized using headings and bullet points.
   Please highlight important terms, formulas, and concepts using Markdown for emphasis (e.g., using **bold** for key terms).
+  
+  Note Style:
+  {{#if (eq noteLength "short")}}
+  Generate concise, summary-style notes perfect for quick revision (like for a UG student). Focus on the absolute key points.
+  {{else}}
+  Generate detailed, comprehensive notes suitable for in-depth study (like for a PhD student). Cover all topics thoroughly.
+  {{/if}}
 
   Document Text: {{{pdfText}}}`,
 });

@@ -34,6 +34,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import ReactMarkdown from 'react-markdown';
 import { useTheme } from 'next-themes';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
@@ -94,6 +95,7 @@ export function PdfProStudyPage() {
 
   const [smartNotes, setSmartNotes] = useState<string | null>(null);
   const [isSmartNotesLoading, setIsSmartNotesLoading] = useState(false);
+  const [noteLength, setNoteLength] = useState<'short' | 'long'>('short');
 
 
   const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
@@ -204,7 +206,7 @@ export function PdfProStudyPage() {
     setIsSmartNotesLoading(true);
     setSmartNotes(null);
     try {
-      const result = await generateSmartNotes({ pdfText: summary });
+      const result = await generateSmartNotes({ pdfText: summary, noteLength });
       setSmartNotes(result.notes);
     } catch (e) {
       if (isOverloadedError(e)) {
@@ -680,7 +682,17 @@ export function PdfProStudyPage() {
           {!smartNotes && !isSmartNotesLoading && (
               <div className="flex flex-col items-center gap-4 py-8">
                   <p className="text-center text-muted-foreground">Generate structured notes from the document's summary.</p>
-                  <Button onClick={handleGenerateSmartNotes} disabled={isSmartNotesLoading}>
+                  <RadioGroup defaultValue="short" className="flex gap-4" onValueChange={(value: 'short' | 'long') => setNoteLength(value)}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="short" id="short" />
+                        <Label htmlFor="short">Short Notes (UG/Revision)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="long" id="long" />
+                        <Label htmlFor="long">Long Notes (PhD/Detailed)</Label>
+                      </div>
+                  </RadioGroup>
+                  <Button onClick={handleGenerateSmartNotes} disabled={isSmartNotesLoading} className="mt-4">
                       {isSmartNotesLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
                       Generate Notes
                   </Button>
