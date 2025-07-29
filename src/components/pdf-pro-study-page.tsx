@@ -238,29 +238,25 @@ export function PdfProStudyPage() {
 
   const Uploader = () => (
     <div className="flex items-center justify-center h-full p-4">
-      <Card className="w-full max-w-lg text-center shadow-2xl">
-        <CardHeader>
-          <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
-            <BookOpen className="w-10 h-10 text-primary" />
+      <Card className="w-full max-w-md text-center shadow-2xl overflow-hidden">
+        <CardHeader className="bg-primary/5 p-8">
+          <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20">
+            <BookOpen className="w-12 h-12 text-primary" />
           </div>
-          <CardTitle className="mt-4 text-2xl">PDF Pro Study</CardTitle>
-          <CardDescription>Upload your PDF and let AI accelerate your learning.</CardDescription>
+          <CardTitle className="mt-4 text-3xl font-bold">PDF Pro Study</CardTitle>
+          <CardDescription className="text-lg">Let AI accelerate your learning.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="border-2 border-dashed border-border rounded-lg p-8 space-y-2">
-            <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
-            <p className="text-muted-foreground">Drag & drop your PDF here, or click to browse.</p>
-            <p className="text-xs text-muted-foreground">Max file size: 10MB</p>
-          </div>
+        <CardContent className="p-8">
+          <label htmlFor="file-upload" className="cursor-pointer block border-2 border-dashed border-border rounded-xl p-12 hover:border-primary hover:bg-muted transition-all duration-300">
+            <div className="space-y-4">
+              <UploadCloud className="mx-auto h-16 w-16 text-primary" />
+              <p className="font-semibold text-lg">Drop your PDF here</p>
+              <p className="text-muted-foreground">or click to browse</p>
+              <p className="text-xs text-muted-foreground pt-4">Max file size: 10MB</p>
+            </div>
+            <input id="file-upload" type="file" className="sr-only" accept="application/pdf" onChange={handleFileChange} />
+          </label>
         </CardContent>
-        <CardFooter>
-          <Button asChild size="lg" className="w-full">
-            <label htmlFor="file-upload" className="cursor-pointer">
-              Upload PDF
-              <input id="file-upload" type="file" className="sr-only" accept="application/pdf" onChange={handleFileChange} />
-            </label>
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );
@@ -300,7 +296,7 @@ export function PdfProStudyPage() {
         <FeatureLine angle={210} distance={12}/>
 
         {/* Feature Nodes */}
-        <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} style={{ transform: 'rotate(-30deg) translateX(12rem) rotate(30deg)' }} />
+        <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} style={{ transform: 'rotate(330deg) translateX(12rem) rotate(-330deg)' }} />
         <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} style={{ transform: 'rotate(90deg) translateX(12rem) rotate(-90deg)' }}/>
         <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} style={{ transform: 'rotate(210deg) translateX(12rem) rotate(-210deg)' }}/>
       </div>
@@ -489,3 +485,5 @@ export function PdfProStudyPage() {
     </div>
   );
 }
+
+    
