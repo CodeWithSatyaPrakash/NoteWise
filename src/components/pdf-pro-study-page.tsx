@@ -62,7 +62,7 @@ export function PdfProStudyPage() {
 
   const [quiz, setQuiz] = useState<QuizItem[] | null>(null);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
-  const [numQuestions, setNumQuestions] = useState(5);
+  const [numQuestions, setNumQuestions] = useState<number | ''>(5);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
@@ -131,13 +131,18 @@ export function PdfProStudyPage() {
   
   const handleGenerateQuiz = async () => {
     if (!summary) return;
+    const questions = Number(numQuestions);
+    if (questions < 1) {
+      toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter a valid number of questions.' });
+      return;
+    }
     setIsQuizLoading(true);
     setQuiz(null);
     setUserAnswers({});
     setQuizScore(null);
     setQuizDuration(null);
     try {
-      const result = await generateMcqQuiz({ pdfText: summary, numberOfQuestions: numQuestions });
+      const result = await generateMcqQuiz({ pdfText: summary, numberOfQuestions: questions });
       setQuiz(result.quiz);
     } catch (e) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not generate quiz. Please try again.' });
@@ -208,6 +213,7 @@ export function PdfProStudyPage() {
     setQuizScore(null);
     setQuizDuration(null);
     setQuizStartTime(null);
+    setNumQuestions(5);
   };
   
   const handleSubmitQuiz = () => {
@@ -320,11 +326,11 @@ export function PdfProStudyPage() {
                   <CardContent className="space-y-4">
                     <div>
                       <Label htmlFor="num-questions">Number of Questions</Label>
-                      <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(parseInt(e.target.value, 10) || 1)} min="1" max="10" />
+                      <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" />
                     </div>
                   </CardContent>
                   <CardFooter>
-                     <Button onClick={handleGenerateQuiz} disabled={isQuizLoading} className="w-full">
+                     <Button onClick={handleGenerateQuiz} disabled={isQuizLoading || !numQuestions} className="w-full">
                         {isQuizLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
                         {quiz ? 'Regenerate Quiz' : 'Generate Quiz'}
                       </Button>
