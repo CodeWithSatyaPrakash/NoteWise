@@ -18,7 +18,9 @@ import {
   Copy,
   ChevronLeft,
   ChevronRight,
-  PenSquare
+  PenSquare,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import ReactMarkdown from 'react-markdown';
+import { useTheme } from 'next-themes';
 
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
@@ -61,6 +64,7 @@ const isOverloadedError = (e: any) => {
 }
 
 export function PdfProStudyPage() {
+  const { setTheme, theme } = useTheme();
   const { toast } = useToast();
   const [summary, setSummary] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -420,12 +424,23 @@ export function PdfProStudyPage() {
           <BookOpen className="w-6 h-6 text-primary" />
           <h1 className="text-xl font-bold">PDF Pro Study</h1>
         </div>
-        {summary && (
-          <Button variant="outline" size="sm" onClick={handleReset}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Start Over
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            >
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+            {summary && (
+              <Button variant="outline" size="sm" onClick={handleReset}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Start Over
+              </Button>
+            )}
+        </div>
       </header>
       
       <main className="flex-1 flex items-center justify-center">
