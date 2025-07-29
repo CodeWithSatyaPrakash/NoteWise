@@ -53,6 +53,10 @@ type QnaMessage = {
   content: string;
 };
 
+const isOverloadedError = (e: any) => {
+    return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'));
+}
+
 export function PdfProStudyPage() {
   const { toast } = useToast();
   const [summary, setSummary] = useState<string | null>(null);
@@ -101,7 +105,11 @@ export function PdfProStudyPage() {
         setLoadingMessage('Finding related videos...');
         await handleGetVideos(result.summary);
       } catch (e) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to process PDF. Please try a different file.' });
+        if (isOverloadedError(e)) {
+            toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to process PDF. Please try a different file.' });
+        }
         console.error(e);
         handleReset();
       } finally {
@@ -132,8 +140,8 @@ export function PdfProStudyPage() {
   const handleGenerateQuiz = async () => {
     if (!summary) return;
     const questions = Number(numQuestions);
-    if (questions < 1) {
-      toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter a valid number of questions.' });
+    if (questions < 1 || questions > 20) {
+      toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter a number of questions between 1 and 20.' });
       return;
     }
     setIsQuizLoading(true);
@@ -145,7 +153,11 @@ export function PdfProStudyPage() {
       const result = await generateMcqQuiz({ pdfText: summary, numberOfQuestions: questions });
       setQuiz(result.quiz);
     } catch (e) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not generate quiz. Please try again.' });
+      if (isOverloadedError(e)) {
+        toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate quiz. Please try again.' });
+      }
       console.error(e);
     } finally {
       setIsQuizLoading(false);
@@ -159,7 +171,11 @@ export function PdfProStudyPage() {
       const result = await topicRelatedVideoSuggestions({ pdfContent: text });
       setVideos(result.videoSuggestions);
     } catch (e) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch video suggestions.' });
+      if (isOverloadedError(e)) {
+        toast({ variant: 'destructive', title: 'AI is Busy', description: 'Could not fetch videos. The AI model is currently overloaded. Please try again in a moment.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch video suggestions.' });
+      }
       console.error(e);
     } finally {
       setIsVideosLoading(false);
@@ -179,7 +195,11 @@ export function PdfProStudyPage() {
       const result = await realTimeAIInteraction({ pdfContent: summary, userInput: question });
       setQnaMessages([...newMessages, { role: 'ai', content: result.aiResponse }]);
     } catch (e) {
-      setQnaMessages([...newMessages, { role: 'ai', content: "Sorry, I ran into an error. Please try again." }]);
+      if (isOverloadedError(e)) {
+         setQnaMessages([...newMessages, { role: 'ai', content: "Sorry, the AI is a bit busy right now. Please try again in a moment." }]);
+      } else {
+        setQnaMessages([...newMessages, { role: 'ai', content: "Sorry, I ran into an error. Please try again." }]);
+      }
       console.error(e);
     } finally {
       setIsQnaLoading(false);
@@ -195,7 +215,11 @@ export function PdfProStudyPage() {
         audioRef.current.play();
       }
     } catch (e) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Text-to-speech failed.' });
+       if (isOverloadedError(e)) {
+        toast({ variant: 'destructive', title: 'AI is Busy', description: 'Text-to-speech is currently unavailable. Please try again in a moment.' });
+       } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Text-to-speech failed.' });
+       }
       console.error(e);
     } finally {
       setIsTtsLoading(false);
@@ -326,7 +350,7 @@ export function PdfProStudyPage() {
                   <CardContent className="space-y-4">
                     <div>
                       <Label htmlFor="num-questions">Number of Questions</Label>
-                      <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" />
+                      <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" placeholder="e.g., 5"/>
                     </div>
                   </CardContent>
                   <CardFooter>
