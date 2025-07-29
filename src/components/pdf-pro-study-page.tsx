@@ -64,7 +64,7 @@ const isOverloadedError = (e: any) => {
     return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'));
 }
 
-export function PdfProStudyPage() {
+export function NoteWisePage() {
   const { setTheme, theme } = useTheme();
   const { toast } = useToast();
   const [summary, setSummary] = useState<string | null>(null);
@@ -325,7 +325,7 @@ export function PdfProStudyPage() {
         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4 animate-pulse">
           <BookOpen className="w-12 h-12 text-primary" />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">PDF Pro Study</h1>
+        <h1 className="text-4xl font-bold tracking-tight">NoteWise</h1>
         <p className="text-lg text-muted-foreground mt-2">Let AI accelerate your learning journey.</p>
       </div>
 
@@ -424,7 +424,7 @@ export function PdfProStudyPage() {
       <header className={cn("sticky top-0 z-50 flex items-center justify-between h-16 px-4", summary && "border-b bg-background/80 backdrop-blur-sm")}>
         <div className="flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-primary" />
-          <h1 className="text-xl font-bold">PDF Pro Study</h1>
+          <h1 className="text-xl font-bold">NoteWise</h1>
         </div>
         <div className="flex items-center gap-2">
             <Button

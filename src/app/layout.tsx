@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'PDF Pro Study',
+  title: 'NoteWise',
   description: 'An AI-powered study assistant to enhance learning from PDFs.',
 };
 

@@ -1,5 +1,5 @@
-import { PdfProStudyPage } from "@/components/pdf-pro-study-page";
+import { NoteWisePage } from "@/components/notewise-page";
 
 export default function Home() {
-  return <PdfProStudyPage />;
+  return <NoteWisePage />;
 }
