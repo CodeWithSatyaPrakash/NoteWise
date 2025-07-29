@@ -1,4 +1,4 @@
-import { NoteWisePage } from "@/components/notewise-page";
+import { NoteWisePage } from "@/components/pdf-pro-study-page";
 
 export default function Home() {
   return <NoteWisePage />;
