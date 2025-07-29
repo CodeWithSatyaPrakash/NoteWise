@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Sparkles,
   Clipboard,
+  Lightbulb,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -22,15 +23,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
 import { generateMcqQuiz } from '@/ai/flows/generate-mcq-quiz';
-import { topicRelatedVideoSuggestions } from '@/ai/flows/topic-related-video-suggestions';
 import { realTimeAIInteraction } from '@/ai/flows/real-time-ai-interaction';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 
@@ -41,16 +40,12 @@ type QuizItem = {
   topic: string;
 };
 
-type VideoSuggestion = {
-  title: string;
-  videoId: string;
-  description: string;
-};
-
 type QnaMessage = {
   role: 'user' | 'ai';
   content: string;
 };
+
+type FeatureDialog = 'summary' | 'quiz' | 'qna' | null;
 
 const isOverloadedError = (e: any) => {
     return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'));
@@ -72,16 +67,14 @@ export function PdfProStudyPage() {
   const [quizDuration, setQuizDuration] = useState<number | null>(null);
   const [reviewTopics, setReviewTopics] = useState<string[]>([]);
 
-
-  const [videos, setVideos] = useState<VideoSuggestion[] | null>(null);
-  const [isVideosLoading, setIsVideosLoading] = useState(false);
-
   const [qnaMessages, setQnaMessages] = useState<QnaMessage[]>([]);
   const [isQnaLoading, setIsQnaLoading] = useState(false);
   const qnaInputRef = useRef<HTMLInputElement>(null);
 
   const [isTtsLoading, setIsTtsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
 
   useEffect(() => {
     if (quiz && quizScore === null) {
@@ -212,7 +205,6 @@ export function PdfProStudyPage() {
     setIsLoading(false);
     setFileName(null);
     setQuiz(null);
-    setVideos(null);
     setQnaMessages([]);
     setUserAnswers({});
     setQuizScore(null);
@@ -220,6 +212,7 @@ export function PdfProStudyPage() {
     setQuizStartTime(null);
     setNumQuestions(5);
     setReviewTopics([]);
+    setActiveDialog(null);
   };
   
   const handleSubmitQuiz = () => {
@@ -271,6 +264,43 @@ export function PdfProStudyPage() {
       </Card>
     </div>
   );
+  
+  const FeatureNode = ({ icon, title, onClick, angle, distance }: { icon: React.ElementType, title: string, onClick: () => void, angle: number, distance: number }) => {
+    const Icon = icon;
+    const style = {
+      transform: `rotate(${angle}deg) translate(${distance}rem) rotate(-${angle}deg)`,
+    };
+    return (
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={style}>
+          <div className="relative flex justify-center items-center">
+             <div className="absolute top-1/2 left-1/2 h-px bg-border -translate-y-1/2" style={{width: `${distance}rem`, transform: `translate(-${distance/2}rem) rotate(${angle-180}deg) `, transformOrigin: `${distance/2}rem center`}}/>
+            <Button onClick={onClick} className="rounded-full w-24 h-24 flex-col gap-1 shadow-lg" variant="outline">
+              <Icon className="w-6 h-6 text-primary" />
+              <span className="text-xs text-center">{title}</span>
+            </Button>
+          </div>
+      </div>
+    );
+  };
+
+  const FeatureHub = () => (
+    <div className="relative w-full h-full flex items-center justify-center">
+      <div className="absolute w-96 h-96">
+        <div className="relative w-full h-full flex items-center justify-center">
+          <div className="w-32 h-32 bg-primary/10 rounded-full flex flex-col items-center justify-center gap-2 text-center">
+            <Lightbulb className="w-10 h-10 text-primary" />
+            <p className="text-sm font-semibold">Doc Received!</p>
+            <p className="text-xs text-muted-foreground truncate w-28">{fileName}</p>
+          </div>
+
+          <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} angle={-30} distance={12} />
+          <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} angle={90} distance={12} />
+          <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} angle={210} distance={12} />
+        </div>
+      </div>
+    </div>
+  );
+
 
   if (isLoading) {
     return (
@@ -297,197 +327,161 @@ export function PdfProStudyPage() {
         )}
       </header>
       
-      <main className="flex-1">
-        {!summary ? <Uploader /> : (
-          <div className="container mx-auto p-4 md:p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <aside className="lg:col-span-1 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><FileText className="text-primary"/> Document</CardTitle>
-                    <CardDescription className="truncate">{fileName}</CardDescription>
-                  </CardHeader>
-                </Card>
-                <Card className="relative">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Sparkles className="text-primary"/> AI Summary</CardTitle>
-                    <CardDescription>Key points from your document.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ScrollArea className="h-48">
-                      <p className="text-sm">{summary}</p>
-                    </ScrollArea>
-                  </CardContent>
-                  <CardFooter className="gap-2">
-                     <Button variant="outline" size="sm" onClick={() => summary && handleTextToSpeech(summary)} disabled={isTtsLoading}>
-                        {isTtsLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                        Listen
-                     </Button>
-                     <Button variant="ghost" size="sm" onClick={() => summary && navigator.clipboard.writeText(summary)}>
-                        <Clipboard className="w-4 h-4 mr-2" /> Copy
-                     </Button>
-                  </CardFooter>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><HelpCircle className="text-primary"/> Generate Quiz</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="num-questions">Number of Questions</Label>
-                      <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" placeholder="e.g., 5"/>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                     <Button onClick={handleGenerateQuiz} disabled={isQuizLoading || !numQuestions} className="w-full">
-                        {isQuizLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                        {quiz ? 'Regenerate Quiz' : 'Generate Quiz'}
-                      </Button>
-                  </CardFooter>
-                </Card>
-              </aside>
-
-              <main className="lg:col-span-2">
-                 <Tabs defaultValue="quiz">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="quiz"><HelpCircle className="w-4 h-4 mr-2" />Quiz</TabsTrigger>
-                    <TabsTrigger value="qna"><MessageSquare className="w-4 h-4 mr-2" />Q&A</TabsTrigger>
-                    <TabsTrigger value="review"><BookOpen className="w-4 h-4 mr-2" />Review</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="quiz" className="mt-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Multiple Choice Quiz</CardTitle>
-                        <CardDescription>Test your knowledge based on the document summary.</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {isQuizLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-                        {!isQuizLoading && !quiz && <div className="text-center text-muted-foreground p-8">Generate a quiz to get started!</div>}
-                        {quiz && (
-                          <div className="space-y-6">
-                            {quiz.map((q, i) => (
-                              <div key={i}>
-                                <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
-                                <div className="space-y-2">
-                                  {q.options.map((opt, j) => {
-                                    const isSelected = userAnswers[i] === opt;
-                                    const isCorrect = q.answer === opt;
-                                    const isSubmitted = quizScore !== null;
-                                    return (
-                                    <Button key={j} variant="outline" className={cn("w-full justify-start text-left h-auto py-2", 
-                                      isSelected && "border-primary",
-                                      isSubmitted && isCorrect && "bg-green-500/20 border-green-500",
-                                      isSubmitted && isSelected && !isCorrect && "bg-red-500/20 border-red-500"
-                                      )}
-                                      onClick={() => setUserAnswers(prev => ({...prev, [i]: opt}))}
-                                      disabled={isSubmitted}
-                                      >
-                                      {opt}
-                                    </Button>
-                                    )
-                                  })}
-                                </div>
-                                {quizScore !== null && userAnswers[i] !== q.answer && (
-                                  <Alert variant="destructive" className="mt-2">
-                                    <AlertDescription>
-                                      Review the section on: <strong>{q.topic}</strong>
-                                    </AlertDescription>
-                                  </Alert>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                      {quiz && (
-                        <CardFooter className="flex-col items-stretch gap-4">
-                           {quizScore !== null && (
-                            <div className="p-4 bg-muted rounded-lg text-center">
-                              <p className="text-lg font-bold">Your Score: {quizScore}/{quiz.length}</p>
-                              {quizDuration !== null && <p className="text-sm text-muted-foreground">Completed in {quizDuration} seconds</p>}
-                            </div>
-                           )}
-                           <Button onClick={handleSubmitQuiz} disabled={quizScore !== null}>
-                             Submit Quiz
-                           </Button>
-                        </CardFooter>
-                      )}
-                    </Card>
-                  </TabsContent>
-
-                   <TabsContent value="qna" className="mt-6">
-                    <Card className="h-[600px] flex flex-col">
-                      <CardHeader>
-                         <CardTitle>Interactive Q&A</CardTitle>
-                        <CardDescription>Ask questions and get answers from the PDF content.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-1 overflow-hidden">
-                        <ScrollArea className="h-full pr-4">
-                          <div className="space-y-4">
-                            {qnaMessages.map((msg, i) => (
-                              <div key={i} className={cn("flex items-start gap-3", msg.role === 'user' ? 'justify-end' : '')}>
-                                {msg.role === 'ai' && <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0"><Sparkles className="w-5 h-5 text-primary"/></div>}
-                                <div className={cn("p-3 rounded-lg max-w-[80%]", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                                </div>
-                              </div>
-                            ))}
-                            {isQnaLoading && (
-                              <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0"><Sparkles className="w-5 h-5 text-primary"/></div>
-                                <div className="p-3 rounded-lg bg-muted flex items-center"><Loader2 className="w-5 h-5 animate-spin" /></div>
-                              </div>
-                            )}
-                          </div>
-                        </ScrollArea>
-                      </CardContent>
-                      <CardFooter>
-                         <div className="flex w-full items-center space-x-2">
-                           <Input ref={qnaInputRef} placeholder="Ask a question..." onKeyDown={(e) => e.key === 'Enter' && handleAskQuestion()}/>
-                           <Button onClick={handleAskQuestion} disabled={isQnaLoading}><Send className="w-4 h-4"/></Button>
-                         </div>
-                      </CardFooter>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="review" className="mt-6">
-                    <Card>
-                       <CardHeader>
-                         <CardTitle>Review Topics</CardTitle>
-                        <CardDescription>Focus on these topics from the questions you missed.</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {quizScore === null && (
-                          <div className="text-center text-muted-foreground p-8">
-                            Complete a quiz to see your review topics.
-                          </div>
-                        )}
-                        {quizScore !== null && reviewTopics.length === 0 && (
-                          <div className="text-center text-green-500 font-bold p-8">
-                            Congratulations! You got all the questions right!
-                          </div>
-                        )}
-                        {reviewTopics.length > 0 && (
-                          <div className="space-y-2">
-                            {reviewTopics.map((topic, i) => (
-                              <div key={i} className="p-3 bg-muted rounded-md">
-                                <p className="font-semibold">{topic}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                 </Tabs>
-              </main>
-            </div>
-            <audio ref={audioRef} className="hidden" />
-          </div>
-        )}
+      <main className="flex-1 flex items-center justify-center">
+        {!summary ? <Uploader /> : <FeatureHub />}
       </main>
+      
+      {/* Dialog for AI Summary */}
+      <Dialog open={activeDialog === 'summary'} onOpenChange={() => setActiveDialog(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Sparkles className="text-primary"/> AI Summary</DialogTitle>
+            <DialogDescription>Key points from your document.</DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-64 pr-4">
+            <p className="text-sm">{summary}</p>
+          </ScrollArea>
+          <DialogFooter className="gap-2 sm:justify-start">
+             <Button variant="outline" size="sm" onClick={() => summary && handleTextToSpeech(summary)} disabled={isTtsLoading}>
+                {isTtsLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Volume2 className="w-4 h-4 mr-2" />}
+                Listen
+             </Button>
+             <Button variant="ghost" size="sm" onClick={() => summary && navigator.clipboard.writeText(summary)}>
+                <Clipboard className="w-4 h-4 mr-2" /> Copy
+             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog for Quiz */}
+      <Dialog open={activeDialog === 'quiz'} onOpenChange={() => setActiveDialog(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Multiple Choice Quiz</DialogTitle>
+            <DialogDescription>Test your knowledge based on the document summary.</DialogDescription>
+          </DialogHeader>
+          
+            {!quiz && !isQuizLoading && (
+              <div className="flex flex-col items-center gap-4 py-8">
+                  <Label htmlFor="num-questions">Number of Questions</Label>
+                  <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" placeholder="e.g., 5" className="w-48"/>
+                  <Button onClick={handleGenerateQuiz} disabled={isQuizLoading || !numQuestions} className="w-48">
+                    {isQuizLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                    Generate Quiz
+                  </Button>
+              </div>
+            )}
+
+            {isQuizLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+            
+            {quiz && (
+              <ScrollArea className="h-[60vh] pr-4">
+              <div className="space-y-6">
+                {quiz.map((q, i) => (
+                  <div key={i}>
+                    <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
+                    <div className="space-y-2">
+                      {q.options.map((opt, j) => {
+                        const isSelected = userAnswers[i] === opt;
+                        const isCorrect = q.answer === opt;
+                        const isSubmitted = quizScore !== null;
+                        return (
+                        <Button key={j} variant="outline" className={cn("w-full justify-start text-left h-auto py-2", 
+                          isSelected && "border-primary",
+                          isSubmitted && isCorrect && "bg-green-500/20 border-green-500",
+                          isSubmitted && isSelected && !isCorrect && "bg-red-500/20 border-red-500"
+                          )}
+                          onClick={() => setUserAnswers(prev => ({...prev, [i]: opt}))}
+                          disabled={isSubmitted}
+                          >
+                          {opt}
+                        </Button>
+                        )
+                      })}
+                    </div>
+                    {quizScore !== null && userAnswers[i] !== q.answer && (
+                      <Alert variant="destructive" className="mt-2">
+                        <AlertDescription>
+                          Review the section on: <strong>{q.topic}</strong>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                ))}
+              </div>
+              </ScrollArea>
+            )}
+
+          {quiz && (
+            <DialogFooter className="flex-col items-stretch gap-4 sm:flex-col sm:items-stretch">
+               {quizScore !== null ? (
+                <div className="p-4 bg-muted rounded-lg text-center">
+                  <p className="text-lg font-bold">Your Score: {quizScore}/{quiz.length}</p>
+                  {quizDuration !== null && <p className="text-sm text-muted-foreground">Completed in {quizDuration} seconds</p>}
+                  {reviewTopics.length > 0 && (
+                    <div className="mt-4 text-left">
+                       <p className="font-bold">Topics to review:</p>
+                       <ul className="list-disc list-inside text-sm text-muted-foreground">
+                        {reviewTopics.map((topic, i) => <li key={i}>{topic}</li>)}
+                       </ul>
+                    </div>
+                  )}
+                  <Button onClick={handleGenerateQuiz} className="mt-4 w-full" variant="secondary">
+                     <RefreshCw className="w-4 h-4 mr-2"/>
+                     Regenerate Quiz
+                  </Button>
+                </div>
+               ) : (
+                <Button onClick={handleSubmitQuiz} disabled={Object.keys(userAnswers).length !== quiz.length}>
+                  Submit Quiz
+                </Button>
+               )
+              }
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog for Q&A */}
+      <Dialog open={activeDialog === 'qna'} onOpenChange={() => setActiveDialog(null)}>
+        <DialogContent className="h-[80vh] flex flex-col sm:max-w-lg">
+          <DialogHeader>
+             <DialogTitle className="flex items-center gap-2"><MessageSquare className="text-primary"/> Interactive Q&A</DialogTitle>
+            <DialogDescription>Ask questions and get answers from the PDF content.</DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full pr-4">
+              <div className="space-y-4">
+                {qnaMessages.length === 0 && <div className="text-center text-muted-foreground p-8">Ask a question to start the conversation.</div>}
+                {qnaMessages.map((msg, i) => (
+                  <div key={i} className={cn("flex items-start gap-3", msg.role === 'user' ? 'justify-end' : '')}>
+                    {msg.role === 'ai' && <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0"><Sparkles className="w-5 h-5 text-primary"/></div>}
+                    <div className={cn("p-3 rounded-lg max-w-[80%]", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isQnaLoading && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0"><Sparkles className="w-5 h-5 text-primary"/></div>
+                    <div className="p-3 rounded-lg bg-muted flex items-center"><Loader2 className="w-5 h-5 animate-spin" /></div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+          <DialogFooter>
+             <div className="flex w-full items-center space-x-2">
+               <Input ref={qnaInputRef} placeholder="Ask a question..." onKeyDown={(e) => e.key === 'Enter' && handleAskQuestion()}/>
+               <Button onClick={handleAskQuestion} disabled={isQnaLoading}><Send className="w-4 h-4"/></Button>
+             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <audio ref={audioRef} className="hidden" />
     </div>
   );
 }
+
+    
