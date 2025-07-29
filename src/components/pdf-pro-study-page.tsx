@@ -18,6 +18,7 @@ import {
   Copy,
   ChevronLeft,
   ChevronRight,
+  PenSquare
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -29,12 +30,15 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import ReactMarkdown from 'react-markdown';
+
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
 import { generateMcqQuiz } from '@/ai/flows/generate-mcq-quiz';
 import { realTimeAIInteraction } from '@/ai/flows/real-time-ai-interaction';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { generateFlashcards, GenerateFlashcardsOutput } from '@/ai/flows/generate-flashcards';
+import { generateSmartNotes } from '@/ai/flows/generate-smart-notes';
 
 type QuizItem = {
   question: string;
@@ -50,7 +54,7 @@ type QnaMessage = {
 
 type Flashcard = GenerateFlashcardsOutput['flashcards'][0];
 
-type FeatureDialog = 'summary' | 'quiz' | 'qna' | 'flashcards' | null;
+type FeatureDialog = 'summary' | 'quiz' | 'qna' | 'flashcards' | 'smart-notes' | null;
 
 const isOverloadedError = (e: any) => {
     return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'));
@@ -83,6 +87,9 @@ export function PdfProStudyPage() {
   const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
+
+  const [smartNotes, setSmartNotes] = useState<string | null>(null);
+  const [isSmartNotesLoading, setIsSmartNotesLoading] = useState(false);
 
 
   const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
@@ -187,6 +194,25 @@ export function PdfProStudyPage() {
       setIsFlashcardLoading(false);
     }
   };
+  
+  const handleGenerateSmartNotes = async () => {
+    if (!summary) return;
+    setIsSmartNotesLoading(true);
+    setSmartNotes(null);
+    try {
+      const result = await generateSmartNotes({ pdfText: summary });
+      setSmartNotes(result.notes);
+    } catch (e) {
+      if (isOverloadedError(e)) {
+        toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate notes. Please try again.' });
+      }
+      console.error(e);
+    } finally {
+      setIsSmartNotesLoading(false);
+    }
+  };
 
 
   const handleAskQuestion = async () => {
@@ -247,6 +273,7 @@ export function PdfProStudyPage() {
     setReviewTopics([]);
     setActiveDialog(null);
     setFlashcards(null);
+    setSmartNotes(null);
   };
   
   const handleSubmitQuiz = () => {
@@ -336,6 +363,8 @@ export function PdfProStudyPage() {
             <line x1="50%" y1="50%" x2="50%" y2="66" stroke="hsl(var(--border))" strokeWidth="2" />
             {/* Line to top-left node */}
             <line x1="50%" y1="50%" x2="calc(15%)" y2="calc(25%)" stroke="hsl(var(--border))" strokeWidth="2" />
+             {/* Line to top-right node */}
+            <line x1="50%" y1="50%" x2="calc(100% - 66px)" y2="calc(25%)" stroke="hsl(var(--border))" strokeWidth="2" />
             {/* Line to bottom-left node */}
             <line x1="50%" y1="50%" x2="calc(25%)" y2="calc(100% - 66px)" stroke="hsl(var(--border))" strokeWidth="2" />
             {/* Line to bottom-right node */}
@@ -357,6 +386,9 @@ export function PdfProStudyPage() {
         </div>
         <div className="absolute top-1/4 left-[5%]">
             <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} />
+        </div>
+        <div className="absolute top-1/4 right-0">
+            <FeatureNode icon={PenSquare} title="Smart Notes" onClick={() => setActiveDialog('smart-notes')} />
         </div>
         <div className="absolute bottom-0 left-1/4 -translate-x-1/2">
             <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} />
@@ -597,6 +629,47 @@ export function PdfProStudyPage() {
                  </DialogFooter>
                )}
           </DialogContent>
+      </Dialog>
+      
+       {/* Dialog for Smart Notes */}
+      <Dialog open={activeDialog === 'smart-notes'} onOpenChange={() => setActiveDialog(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><PenSquare className="text-primary"/> Smart Study Notes</DialogTitle>
+            <DialogDescription>Your structured study notes, ready for review.</DialogDescription>
+          </DialogHeader>
+          
+          {!smartNotes && !isSmartNotesLoading && (
+              <div className="flex flex-col items-center gap-4 py-8">
+                  <p className="text-center text-muted-foreground">Generate structured notes from the document's summary.</p>
+                  <Button onClick={handleGenerateSmartNotes} disabled={isSmartNotesLoading}>
+                      {isSmartNotesLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                      Generate Notes
+                  </Button>
+              </div>
+          )}
+
+          {isSmartNotesLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+          
+          {smartNotes && (
+            <>
+              <ScrollArea className="h-[60vh] pr-4">
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <ReactMarkdown>{smartNotes}</ReactMarkdown>
+                </div>
+              </ScrollArea>
+              <DialogFooter className="gap-2 sm:justify-start">
+                 <Button variant="ghost" size="sm" onClick={() => smartNotes && navigator.clipboard.writeText(smartNotes)}>
+                    <Clipboard className="w-4 h-4 mr-2" /> Copy
+                 </Button>
+                 <Button onClick={handleGenerateSmartNotes} variant="secondary" size="sm">
+                     <RefreshCw className="w-4 h-4 mr-2"/>
+                     Regenerate
+                  </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
       </Dialog>
       
       <audio ref={audioRef} className="hidden" />

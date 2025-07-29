@@ -8,3 +8,4 @@ import '@/ai/flows/interactive-q-and-a.ts';
 import '@/ai/flows/text-to-speech.ts';
 import '@/ai/flows/pdf-upload-and-summarize.ts';
 import '@/ai/flows/generate-flashcards.ts';
+import '@/ai/flows/generate-smart-notes.ts';
