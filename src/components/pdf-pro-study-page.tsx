@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
@@ -268,7 +269,7 @@ export function PdfProStudyPage() {
     const Icon = icon;
     
     return (
-      <div className={cn("group relative", className)}>
+      <div className={cn("group relative z-10", className)}>
          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
          <Button onClick={onClick} className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg" variant="outline">
           <Icon className="w-8 h-8 text-primary" />
@@ -279,21 +280,31 @@ export function PdfProStudyPage() {
   };
   
   const FeatureHub = () => (
-    <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
+    <div className="w-full h-full flex items-center justify-center">
       <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
-       <div className="mb-12 text-center">
-         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4">
+      <div className="relative flex items-center justify-center w-[600px] h-[400px]">
+        {/* Central Hub */}
+        <div className="z-10 flex flex-col items-center text-center">
+          <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4">
             <Lightbulb className="w-10 h-10 text-primary" />
-         </div>
-         <h2 className="text-2xl font-bold">Doc Received!</h2>
-         <p className="text-muted-foreground truncate max-w-sm">{fileName}</p>
-       </div>
-       
-       <div className="flex items-center justify-center gap-8 md:gap-16">
-          <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} />
-          <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} />
-          <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} />
-       </div>
+          </div>
+          <h2 className="text-2xl font-bold">Doc Received!</h2>
+          <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
+        </div>
+
+        {/* Lines */}
+        <div className="absolute top-1/2 left-1/2 w-full h-full -z-0">
+          <div className="absolute top-1/2 left-0 w-1/2 h-0.5 bg-border -translate-y-1/2"></div>
+          <div className="absolute top-0 left-1/2 w-0.5 h-1/2 bg-border -translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-1/2 w-0.5 h-1/2 bg-border -translate-x-1/2"></div>
+        </div>
+        
+        {/* Feature Nodes */}
+        <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
+        <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2"/>
+        <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2" />
+
+      </div>
     </div>
   );
 
@@ -310,7 +321,7 @@ export function PdfProStudyPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className={cn("sticky top-0 z-10 flex items-center justify-between h-16 px-4", summary && "border-b bg-background/80 backdrop-blur-sm")}>
+      <header className={cn("sticky top-0 z-50 flex items-center justify-between h-16 px-4", summary && "border-b bg-background/80 backdrop-blur-sm")}>
         <div className="flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-primary" />
           <h1 className="text-xl font-bold">PDF Pro Study</h1>
@@ -479,5 +490,3 @@ export function PdfProStudyPage() {
     </div>
   );
 }
-
-    
