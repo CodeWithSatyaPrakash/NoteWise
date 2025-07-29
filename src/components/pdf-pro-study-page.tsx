@@ -238,10 +238,10 @@ export function PdfProStudyPage() {
 
   const Uploader = () => (
     <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
-      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
+      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
       
       <div className="mb-8">
-        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4">
+        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4 animate-pulse">
           <BookOpen className="w-12 h-12 text-primary" />
         </div>
         <h1 className="text-4xl font-bold tracking-tight">PDF Pro Study</h1>
@@ -249,9 +249,9 @@ export function PdfProStudyPage() {
       </div>
 
       <label htmlFor="file-upload" className="relative block w-full max-w-lg cursor-pointer">
-        <div className="p-8 rounded-2xl bg-muted/50 border-2 border-dashed border-border transition-all duration-300 hover:border-primary hover:bg-muted/80 hover:shadow-2xl hover:-translate-y-1">
+        <div className="p-8 rounded-2xl bg-muted/50 border-2 border-dashed border-border transition-all duration-300 hover:border-primary hover:bg-muted/80 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1">
           <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="p-4 bg-primary/10 rounded-full">
+            <div className="p-4 bg-primary/10 rounded-full group-hover:animate-bounce">
               <UploadCloud className="h-12 w-12 text-primary" />
             </div>
             <p className="text-xl font-semibold">Drop PDF Here</p>
@@ -264,45 +264,36 @@ export function PdfProStudyPage() {
     </div>
   );
   
-  const FeatureNode = ({ icon, title, onClick, style }: { icon: React.ElementType, title: string, onClick: () => void, style?: React.CSSProperties }) => {
+  const FeatureNode = ({ icon, title, onClick, className }: { icon: React.ElementType, title: string, onClick: () => void, className?: string }) => {
     const Icon = icon;
     
     return (
-      <div className="absolute top-1/2 left-1/2" style={style}>
-        <Button onClick={onClick} className="rounded-full w-24 h-24 flex-col gap-1 shadow-lg -translate-x-1/2 -translate-y-1/2" variant="outline">
-          <Icon className="w-6 h-6 text-primary" />
-          <span className="text-xs text-center">{title}</span>
+      <div className={cn("group relative", className)}>
+         <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+         <Button onClick={onClick} className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg" variant="outline">
+          <Icon className="w-8 h-8 text-primary" />
+          <span className="text-sm text-center">{title}</span>
         </Button>
       </div>
     );
   };
   
-  const FeatureLine = ({ angle, distance }: { angle: number, distance: number }) => {
-     return (
-        <div className="absolute top-1/2 left-1/2 h-px bg-border origin-left" style={{width: `${distance}rem`, transform: `rotate(${angle}deg)`}}/>
-     );
-  }
-
   const FeatureHub = () => (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative w-96 h-96">
-        {/* Central Hub */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/10 rounded-full flex flex-col items-center justify-center gap-2 text-center p-2 z-10">
-          <Lightbulb className="w-10 h-10 text-primary" />
-          <p className="text-sm font-semibold">Doc Received!</p>
-          <p className="text-xs text-muted-foreground truncate w-full">{fileName}</p>
-        </div>
-
-        {/* Lines */}
-        <FeatureLine angle={-30} distance={12}/>
-        <FeatureLine angle={90} distance={12}/>
-        <FeatureLine angle={210} distance={12}/>
-
-        {/* Feature Nodes */}
-        <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} style={{ transform: 'rotate(330deg) translateX(12rem) rotate(-330deg)' }} />
-        <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} style={{ transform: 'rotate(90deg) translateX(12rem) rotate(-90deg)' }}/>
-        <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} style={{ transform: 'rotate(210deg) translateX(12rem) rotate(-210deg)' }}/>
-      </div>
+    <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
+      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
+       <div className="mb-12 text-center">
+         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4">
+            <Lightbulb className="w-10 h-10 text-primary" />
+         </div>
+         <h2 className="text-2xl font-bold">Doc Received!</h2>
+         <p className="text-muted-foreground truncate max-w-sm">{fileName}</p>
+       </div>
+       
+       <div className="flex items-center justify-center gap-8 md:gap-16">
+          <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} />
+          <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} />
+          <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} />
+       </div>
     </div>
   );
 
@@ -488,3 +479,5 @@ export function PdfProStudyPage() {
     </div>
   );
 }
+
+    
