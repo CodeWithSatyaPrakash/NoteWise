@@ -22,7 +22,12 @@ const GenerateMcqQuizInputSchema = z.object({
 export type GenerateMcqQuizInput = z.infer<typeof GenerateMcqQuizInputSchema>;
 
 const GenerateMcqQuizOutputSchema = z.object({
-  quiz: z.string().describe('The generated multiple-choice quiz in JSON format.'),
+  quiz: z.array(z.object({
+    question: z.string().describe("The question text"),
+    options: z.array(z.string()).describe("An array of 4 possible answers."),
+    answer: z.string().describe("The correct answer from the options."),
+    topic: z.string().describe("The specific topic from the text that this question covers, to help the user know what to review if they get it wrong.")
+  })).describe("An array of quiz questions.")
 });
 export type GenerateMcqQuizOutput = z.infer<typeof GenerateMcqQuizOutputSchema>;
 
@@ -38,12 +43,7 @@ const prompt = ai.definePrompt({
 
   Given the following text from a PDF document, generate a multiple-choice quiz with {{numberOfQuestions}} questions.
 
-  The quiz should be returned in JSON format, with the following structure:
-  [{
-    "question": "The question text",
-    "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-    "answer": "The correct answer"
-  }]
+  For each question, provide the question, 4 options, the correct answer, and the specific topic from the text the question is about. This topic will be shown to the user if they get the question wrong to help them study.
 
   PDF Text: {{{pdfText}}}`,
 });

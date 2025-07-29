@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import {
   UploadCloud,
   FileText,
@@ -27,6 +27,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
 import { generateMcqQuiz } from '@/ai/flows/generate-mcq-quiz';
@@ -38,11 +39,12 @@ type QuizItem = {
   question: string;
   options: string[];
   answer: string;
+  topic: string;
 };
 
 type VideoSuggestion = {
   title: string;
-  url: string;
+  videoId: string;
   description: string;
 };
 
@@ -63,6 +65,9 @@ export function PdfProStudyPage() {
   const [numQuestions, setNumQuestions] = useState(5);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [quizScore, setQuizScore] = useState<number | null>(null);
+  const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
+  const [quizDuration, setQuizDuration] = useState<number | null>(null);
+
 
   const [videos, setVideos] = useState<VideoSuggestion[] | null>(null);
   const [isVideosLoading, setIsVideosLoading] = useState(false);
@@ -73,6 +78,12 @@ export function PdfProStudyPage() {
 
   const [isTtsLoading, setIsTtsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (quiz && quizScore === null) {
+      setQuizStartTime(Date.now());
+    }
+  }, [quiz, quizScore]);
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -124,10 +135,10 @@ export function PdfProStudyPage() {
     setQuiz(null);
     setUserAnswers({});
     setQuizScore(null);
+    setQuizDuration(null);
     try {
       const result = await generateMcqQuiz({ pdfText: summary, numberOfQuestions: numQuestions });
-      const parsedQuiz = JSON.parse(result.quiz);
-      setQuiz(parsedQuiz);
+      setQuiz(result.quiz);
     } catch (e) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not generate quiz. Please try again.' });
       console.error(e);
@@ -195,10 +206,14 @@ export function PdfProStudyPage() {
     setQnaMessages([]);
     setUserAnswers({});
     setQuizScore(null);
+    setQuizDuration(null);
+    setQuizStartTime(null);
   };
   
   const handleSubmitQuiz = () => {
-    if (!quiz) return;
+    if (!quiz || !quizStartTime) return;
+    const endTime = Date.now();
+    setQuizDuration(Math.round((endTime - quizStartTime) / 1000));
     let score = 0;
     quiz.forEach((q, i) => {
       if (userAnswers[i] === q.answer) {
@@ -288,11 +303,11 @@ export function PdfProStudyPage() {
                     </ScrollArea>
                   </CardContent>
                   <CardFooter className="gap-2">
-                     <Button variant="outline" size="sm" onClick={() => handleTextToSpeech(summary)} disabled={isTtsLoading}>
+                     <Button variant="outline" size="sm" onClick={() => summary && handleTextToSpeech(summary)} disabled={isTtsLoading}>
                         {isTtsLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Volume2 className="w-4 h-4 mr-2" />}
                         Listen
                      </Button>
-                     <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText(summary)}>
+                     <Button variant="ghost" size="sm" onClick={() => summary && navigator.clipboard.writeText(summary)}>
                         <Clipboard className="w-4 h-4 mr-2" /> Copy
                      </Button>
                   </CardFooter>
@@ -358,6 +373,13 @@ export function PdfProStudyPage() {
                                     )
                                   })}
                                 </div>
+                                {quizScore !== null && userAnswers[i] !== q.answer && (
+                                  <Alert variant="destructive" className="mt-2">
+                                    <AlertDescription>
+                                      Review the section on: <strong>{q.topic}</strong>
+                                    </AlertDescription>
+                                  </Alert>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -368,6 +390,7 @@ export function PdfProStudyPage() {
                            {quizScore !== null && (
                             <div className="p-4 bg-muted rounded-lg text-center">
                               <p className="text-lg font-bold">Your Score: {quizScore}/{quiz.length}</p>
+                              {quizDuration !== null && <p className="text-sm text-muted-foreground">Completed in {quizDuration} seconds</p>}
                             </div>
                            )}
                            <Button onClick={handleSubmitQuiz} disabled={quizScore !== null}>
@@ -425,7 +448,7 @@ export function PdfProStudyPage() {
                         {videos && (
                           <div className="space-y-4">
                             {videos.map((video, i) => (
-                              <a href={video.url} target="_blank" rel="noopener noreferrer" key={i} className="block">
+                              <a href={`https://www.youtube.com/watch?v=${video.videoId}`} target="_blank" rel="noopener noreferrer" key={i} className="block">
                                 <Card className="hover:bg-muted transition-colors">
                                   <CardHeader>
                                     <CardTitle className="text-base">{video.title}</CardTitle>

@@ -19,7 +19,7 @@ const TopicRelatedVideoSuggestionsOutputSchema = z.object({
   videoSuggestions: z.array(
     z.object({
       title: z.string().describe('The title of the YouTube video.'),
-      url: z.string().describe('The URL of the YouTube video.'),
+      videoId: z.string().describe('The YouTube video ID.'),
       description: z.string().describe('A brief description of the YouTube video.'),
     })
   ).describe('A list of topic-related YouTube video suggestions.'),
@@ -34,10 +34,9 @@ const prompt = ai.definePrompt({
   name: 'topicRelatedVideoSuggestionsPrompt',
   input: {schema: TopicRelatedVideoSuggestionsInputSchema},
   output: {schema: TopicRelatedVideoSuggestionsOutputSchema},
-  prompt: `You are a helpful AI assistant that suggests YouTube videos related to a given text document.
+  prompt: `You are a helpful AI assistant that suggests real, existing YouTube videos related to a given text document.
 
-  Given the following text from a PDF document, suggest 3 YouTube videos that would be helpful for someone trying to understand the content.
-  Return the suggestions as a JSON array.
+  Given the following text from a PDF document, suggest 3 YouTube videos that would be helpful for someone trying to understand the content. For each video, provide its title, video ID, and a brief description. Only use real YouTube video IDs.
 
   PDF Content: {{{pdfContent}}}
   `,
