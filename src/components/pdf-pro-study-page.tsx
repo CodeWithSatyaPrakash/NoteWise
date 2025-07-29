@@ -448,7 +448,7 @@ export function PdfProStudyPage() {
       </main>
 
       <footer className="text-center p-4 text-sm text-muted-foreground">
-        Have feedback or need help? <a href="mailto:your-email@example.com" className="underline hover:text-primary">Contact me</a>.
+        Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
       </footer>
       
       {/* Dialog for AI Summary */}
