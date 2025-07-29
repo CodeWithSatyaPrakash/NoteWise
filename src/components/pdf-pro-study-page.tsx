@@ -282,27 +282,37 @@ export function PdfProStudyPage() {
   const FeatureHub = () => (
     <div className="w-full h-full flex items-center justify-center">
       <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
-      <div className="relative flex items-center justify-center w-[600px] h-[400px]">
+      
+      <div className="relative w-[600px] h-[500px]">
+        {/* SVG Lines */}
+        <svg className="absolute w-full h-full" style={{ top: 0, left: 0 }}>
+          {/* Line to top node */}
+          <line x1="50%" y1="50%" x2="50%" y2="66" stroke="hsl(var(--border))" strokeWidth="2" />
+          {/* Line to left node */}
+          <line x1="50%" y1="50%" x2="66" y2="50%" stroke="hsl(var(--border))" strokeWidth="2" />
+          {/* Line to right node */}
+          <line x1="50%" y1="50%" x2="calc(100% - 66px)" y2="50%" stroke="hsl(var(--border))" strokeWidth="2" />
+        </svg>
+        
         {/* Central Hub */}
-        <div className="z-10 flex flex-col items-center text-center">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center text-center">
           <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4">
             <Lightbulb className="w-10 h-10 text-primary" />
           </div>
           <h2 className="text-2xl font-bold">Doc Received!</h2>
           <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
         </div>
-
-        {/* Lines */}
-        <div className="absolute top-1/2 left-1/2 w-full h-full -z-0">
-          <div className="absolute top-1/2 left-0 w-1/2 h-0.5 bg-border -translate-y-1/2"></div>
-          <div className="absolute top-0 left-1/2 w-0.5 h-1/2 bg-border -translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-1/2 w-0.5 h-1/2 bg-border -translate-x-1/2"></div>
-        </div>
         
         {/* Feature Nodes */}
-        <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
-        <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2"/>
-        <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2">
+          <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} />
+        </div>
+        <div className="absolute top-1/2 left-0 -translate-y-1/2">
+          <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} />
+        </div>
+        <div className="absolute top-1/2 right-0 -translate-y-1/2">
+          <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} />
+        </div>
 
       </div>
     </div>
