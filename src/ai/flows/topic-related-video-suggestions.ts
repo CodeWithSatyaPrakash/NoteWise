@@ -19,7 +19,7 @@ const TopicRelatedVideoSuggestionsOutputSchema = z.object({
   videoSuggestions: z.array(
     z.object({
       title: z.string().describe('The title of the YouTube video.'),
-      url: z.string().url().describe('The URL of the YouTube video.'),
+      url: z.string().describe('The URL of the YouTube video.'),
       description: z.string().describe('A brief description of the YouTube video.'),
     })
   ).describe('A list of topic-related YouTube video suggestions.'),
