@@ -446,6 +446,10 @@ export function PdfProStudyPage() {
       <main className="flex-1 flex items-center justify-center">
         {!summary ? <Uploader /> : <FeatureHub />}
       </main>
+
+      <footer className="text-center p-4 text-sm text-muted-foreground">
+        Have feedback or need help? <a href="mailto:your-email@example.com" className="underline hover:text-primary">Contact me</a>.
+      </footer>
       
       {/* Dialog for AI Summary */}
       <Dialog open={activeDialog === 'summary'} onOpenChange={(v) => !v && setActiveDialog(null)}>
