@@ -1,5 +1,5 @@
-import { NoteWisePage } from "@/components/pdf-pro-study-page";
+import { NoteWiseAIPage } from "@/components/notewise-ai-page";
 
 export default function Home() {
-  return <NoteWisePage />;
+  return <NoteWiseAIPage />;
 }
