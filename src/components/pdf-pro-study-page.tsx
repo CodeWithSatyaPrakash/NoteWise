@@ -267,26 +267,20 @@ export function PdfProStudyPage() {
   
   const FeatureNode = ({ icon, title, onClick, angle, distance }: { icon: React.ElementType, title: string, onClick: () => void, angle: number, distance: number }) => {
     const Icon = icon;
+    const x = Math.cos(angle * Math.PI / 180) * distance;
+    const y = Math.sin(angle * Math.PI / 180) * distance;
+
     const style = {
-      transform: `rotate(${angle}deg) translate(${distance}rem) rotate(-${angle}deg)`,
-      transformOrigin: '0 50%',
+      transform: `translate(${x}rem, ${y}rem)`,
     };
+    
     return (
-      <div className="absolute top-1/2 left-1/2" >
-        <div style={style} className="relative flex items-center">
-            <div 
-              className="absolute left-0 top-1/2 h-px bg-border -translate-y-1/2" 
-              style={{
-                width: `${distance}rem`,
-                transform: `rotate(180deg) translate(100%)`, 
-                transformOrigin: '0 0'
-              }}
-            />
-            <Button onClick={onClick} className="rounded-full w-24 h-24 flex-col gap-1 shadow-lg" variant="outline">
-              <Icon className="w-6 h-6 text-primary" />
-              <span className="text-xs text-center">{title}</span>
-            </Button>
-        </div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={style}>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-px bg-border" style={{width: `${distance}rem`, transform: `rotate(${angle+180}deg) translate(${distance/2}rem)`}}/>
+        <Button onClick={onClick} className="rounded-full w-24 h-24 flex-col gap-1 shadow-lg" variant="outline">
+          <Icon className="w-6 h-6 text-primary" />
+          <span className="text-xs text-center">{title}</span>
+        </Button>
       </div>
     );
   };
@@ -294,12 +288,14 @@ export function PdfProStudyPage() {
   const FeatureHub = () => (
     <div className="relative w-full h-full flex items-center justify-center">
       <div className="relative w-96 h-96 flex items-center justify-center">
-        <div className="absolute w-32 h-32 bg-primary/10 rounded-full flex flex-col items-center justify-center gap-2 text-center p-2">
+        {/* Central Hub */}
+        <div className="absolute w-32 h-32 bg-primary/10 rounded-full flex flex-col items-center justify-center gap-2 text-center p-2 z-10">
           <Lightbulb className="w-10 h-10 text-primary" />
           <p className="text-sm font-semibold">Doc Received!</p>
           <p className="text-xs text-muted-foreground truncate w-full">{fileName}</p>
         </div>
 
+        {/* Feature Nodes */}
         <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} angle={-30} distance={12} />
         <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} angle={90} distance={12} />
         <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} angle={210} distance={12} />
