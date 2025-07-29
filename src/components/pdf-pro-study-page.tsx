@@ -396,7 +396,7 @@ export function PdfProStudyPage() {
             <FeatureNode icon={PenSquare} title="Smart Notes" onClick={() => setActiveDialog('smart-notes')} />
         </div>
         <div className="absolute bottom-0 left-1/4 -translate-x-1/2">
-            <FeatureNode icon={MessageSquare} title="Chat with AI" onClick={() => setActiveDialog('qna')} />
+            <FeatureNode icon={MessageSquare} title="Talk to PDF" onClick={() => setActiveDialog('qna')} />
         </div>
         <div className="absolute bottom-0 right-0">
             <FeatureNode icon={Copy} title="Flashcards" onClick={() => setActiveDialog('flashcards')} />
