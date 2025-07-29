@@ -138,8 +138,8 @@ export function PdfProStudyPage() {
         toast({ variant: 'destructive', title: 'Invalid File Type', description: 'Please upload a PDF file.' });
         return;
       }
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        toast({ variant: 'destructive', title: 'File Too Large', description: 'Please upload a PDF smaller than 10MB.' });
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit
+        toast({ variant: 'destructive', title: 'File Too Large', description: 'Please upload a PDF smaller than 50MB.' });
         return;
       }
       handleFileUpload(file);
@@ -335,7 +335,7 @@ export function PdfProStudyPage() {
         </div>
         <input id="file-upload" type="file" className="sr-only" accept="application/pdf" onChange={handleFileChange} />
       </label>
-      <p className="text-xs text-muted-foreground mt-6">Max file size: 10MB. We promise to keep your data safe.</p>
+      <p className="text-xs text-muted-foreground mt-6">Max file size: 50MB. We promise to keep your data safe.</p>
     </div>
   );
   
