@@ -6,7 +6,6 @@ import {
   UploadCloud,
   FileText,
   HelpCircle,
-  Youtube,
   MessageSquare,
   Volume2,
   Loader2,
@@ -71,6 +70,7 @@ export function PdfProStudyPage() {
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
   const [quizDuration, setQuizDuration] = useState<number | null>(null);
+  const [reviewTopics, setReviewTopics] = useState<string[]>([]);
 
 
   const [videos, setVideos] = useState<VideoSuggestion[] | null>(null);
@@ -102,8 +102,6 @@ export function PdfProStudyPage() {
         setLoadingMessage('Generating summary...');
         const result = await pdfUploadAndSummarize({ pdfDataUri });
         setSummary(result.summary);
-        setLoadingMessage('Finding related videos...');
-        await handleGetVideos(result.summary);
       } catch (e) {
         if (isOverloadedError(e)) {
             toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
@@ -149,6 +147,7 @@ export function PdfProStudyPage() {
     setUserAnswers({});
     setQuizScore(null);
     setQuizDuration(null);
+    setReviewTopics([]);
     try {
       const result = await generateMcqQuiz({ pdfText: summary, numberOfQuestions: questions });
       setQuiz(result.quiz);
@@ -161,24 +160,6 @@ export function PdfProStudyPage() {
       console.error(e);
     } finally {
       setIsQuizLoading(false);
-    }
-  };
-
-  const handleGetVideos = async (text: string) => {
-    if (!text) return;
-    setIsVideosLoading(true);
-    try {
-      const result = await topicRelatedVideoSuggestions({ pdfContent: text });
-      setVideos(result.videoSuggestions);
-    } catch (e) {
-      if (isOverloadedError(e)) {
-        toast({ variant: 'destructive', title: 'AI is Busy', description: 'Could not fetch videos. The AI model is currently overloaded. Please try again in a moment.' });
-      } else {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch video suggestions.' });
-      }
-      console.error(e);
-    } finally {
-      setIsVideosLoading(false);
     }
   };
 
@@ -238,6 +219,7 @@ export function PdfProStudyPage() {
     setQuizDuration(null);
     setQuizStartTime(null);
     setNumQuestions(5);
+    setReviewTopics([]);
   };
   
   const handleSubmitQuiz = () => {
@@ -245,12 +227,16 @@ export function PdfProStudyPage() {
     const endTime = Date.now();
     setQuizDuration(Math.round((endTime - quizStartTime) / 1000));
     let score = 0;
+    const incorrectTopics = new Set<string>();
     quiz.forEach((q, i) => {
       if (userAnswers[i] === q.answer) {
         score++;
+      } else {
+        incorrectTopics.add(q.topic);
       }
     });
     setQuizScore(score);
+    setReviewTopics(Array.from(incorrectTopics));
     toast({
       title: 'Quiz Submitted!',
       description: `You scored ${score} out of ${quiz.length}.`,
@@ -367,7 +353,7 @@ export function PdfProStudyPage() {
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="quiz"><HelpCircle className="w-4 h-4 mr-2" />Quiz</TabsTrigger>
                     <TabsTrigger value="qna"><MessageSquare className="w-4 h-4 mr-2" />Q&A</TabsTrigger>
-                    <TabsTrigger value="videos"><Youtube className="w-4 h-4 mr-2" />Videos</TabsTrigger>
+                    <TabsTrigger value="review"><BookOpen className="w-4 h-4 mr-2" />Review</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="quiz" className="mt-6">
@@ -466,26 +452,29 @@ export function PdfProStudyPage() {
                     </Card>
                   </TabsContent>
 
-                  <TabsContent value="videos" className="mt-6">
+                  <TabsContent value="review" className="mt-6">
                     <Card>
                        <CardHeader>
-                         <CardTitle>Related Videos</CardTitle>
-                        <CardDescription>Explore these YouTube videos for a deeper understanding.</CardDescription>
+                         <CardTitle>Review Topics</CardTitle>
+                        <CardDescription>Focus on these topics from the questions you missed.</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        {isVideosLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-                        {!isVideosLoading && !videos?.length && <div className="text-center text-muted-foreground p-8">No video suggestions found.</div>}
-                        {videos && (
-                          <div className="space-y-4">
-                            {videos.map((video, i) => (
-                              <a href={`https://www.youtube.com/watch?v=${video.videoId}`} target="_blank" rel="noopener noreferrer" key={i} className="block">
-                                <Card className="hover:bg-muted transition-colors">
-                                  <CardHeader>
-                                    <CardTitle className="text-base">{video.title}</CardTitle>
-                                    <CardDescription>{video.description}</CardDescription>
-                                  </CardHeader>
-                                </Card>
-                              </a>
+                        {quizScore === null && (
+                          <div className="text-center text-muted-foreground p-8">
+                            Complete a quiz to see your review topics.
+                          </div>
+                        )}
+                        {quizScore !== null && reviewTopics.length === 0 && (
+                          <div className="text-center text-green-500 font-bold p-8">
+                            Congratulations! You got all the questions right!
+                          </div>
+                        )}
+                        {reviewTopics.length > 0 && (
+                          <div className="space-y-2">
+                            {reviewTopics.map((topic, i) => (
+                              <div key={i} className="p-3 bg-muted rounded-md">
+                                <p className="font-semibold">{topic}</p>
+                              </div>
                             ))}
                           </div>
                         )}
