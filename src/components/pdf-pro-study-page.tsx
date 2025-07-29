@@ -462,8 +462,8 @@ export function PdfProStudyPage() {
             <DialogDescription>Test your knowledge based on the document summary.</DialogDescription>
           </DialogHeader>
           
-          <form onSubmit={handleSubmitQuiz}>
-            {!quiz && !isQuizLoading && (
+          <div>
+            {!quiz && !isQuizLoading && quizScore === null && (
               <div className="flex flex-col items-center gap-4 py-8">
                   <Label htmlFor="num-questions">Number of Questions</Label>
                   <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" placeholder="e.g., 5" className="w-48"/>
@@ -476,72 +476,87 @@ export function PdfProStudyPage() {
 
             {isQuizLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
             
-            {quiz && (
-              <ScrollArea className="h-[60vh] pr-4">
-              <div className="space-y-6">
-                {quiz.map((q, i) => (
-                  <div key={i}>
-                    <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
-                    <div className="space-y-2">
-                      {q.options.map((opt, j) => {
-                        const isSelected = userAnswers[i] === opt;
-                        const isCorrect = q.answer === opt;
-                        const isSubmitted = quizScore !== null;
-                        return (
-                        <Button type="button" key={j} variant="outline" className={cn("w-full justify-start text-left h-auto py-2", 
-                          isSelected && "border-primary",
-                          isSubmitted && isCorrect && "bg-green-500/20 border-green-500",
-                          isSubmitted && isSelected && !isCorrect && "bg-red-500/20 border-red-500"
-                          )}
-                          onClick={() => setUserAnswers(prev => ({...prev, [i]: opt}))}
-                          disabled={isSubmitted}
-                          >
-                          {opt}
-                        </Button>
-                        )
-                      })}
+            {quiz && quizScore === null && (
+              <form onSubmit={handleSubmitQuiz}>
+                <ScrollArea className="h-[60vh] pr-4">
+                <div className="space-y-6">
+                  {quiz.map((q, i) => (
+                    <div key={i}>
+                      <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
+                      <div className="space-y-2">
+                        {q.options.map((opt, j) => (
+                          <Button type="button" key={j} variant="outline" className={cn("w-full justify-start text-left h-auto py-2", userAnswers[i] === opt && "border-primary")}
+                            onClick={() => setUserAnswers(prev => ({...prev, [i]: opt}))}
+                            >
+                            {opt}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
-                    {quizScore !== null && userAnswers[i] !== q.answer && (
-                      <Alert variant="destructive" className="mt-2">
-                        <AlertDescription>
-                          Review the section on: <strong>{q.topic}</strong>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-                ))}
-              </div>
-              </ScrollArea>
+                  ))}
+                </div>
+                </ScrollArea>
+                 <DialogFooter className="mt-4">
+                   <Button type="submit" disabled={Object.keys(userAnswers).length !== quiz.length}>
+                    Submit Quiz
+                   </Button>
+                 </DialogFooter>
+              </form>
             )}
 
-          {quiz && (
-            <DialogFooter className="flex-col items-stretch gap-4 sm:flex-col sm:items-stretch mt-4">
-               {quizScore !== null ? (
-                <div className="p-4 bg-muted rounded-lg text-center">
-                  <p className="text-lg font-bold">Your Score: {quizScore}/{quiz.length}</p>
-                  {quizDuration !== null && <p className="text-sm text-muted-foreground">Completed in {quizDuration} seconds</p>}
-                  {reviewTopics.length > 0 && (
-                    <div className="mt-4 text-left">
-                       <p className="font-bold">Topics to review:</p>
-                       <ul className="list-disc list-inside text-sm text-muted-foreground">
-                        {reviewTopics.map((topic, i) => <li key={i}>{topic}</li>)}
-                       </ul>
-                    </div>
-                  )}
-                  <Button onClick={handleGenerateQuiz} className="mt-4 w-full" variant="secondary" type="button">
-                     <RefreshCw className="w-4 h-4 mr-2"/>
-                     Regenerate Quiz
-                  </Button>
-                </div>
-               ) : (
-                <Button type="submit" disabled={Object.keys(userAnswers).length !== quiz.length}>
-                  Submit Quiz
-                </Button>
-               )
-              }
-            </DialogFooter>
-          )}
-          </form>
+            {quizScore !== null && (
+              <div>
+                <ScrollArea className="h-[60vh] pr-4">
+                  <div className="p-4 bg-muted rounded-lg text-center mb-4">
+                    <p className="text-lg font-bold">Your Score: {quizScore}/{quiz.length}</p>
+                    {quizDuration !== null && <p className="text-sm text-muted-foreground">Completed in {quizDuration} seconds</p>}
+                    {reviewTopics.length > 0 && (
+                      <div className="mt-4 text-left">
+                        <p className="font-bold">Topics to review:</p>
+                        <ul className="list-disc list-inside text-sm text-muted-foreground">
+                          {reviewTopics.map((topic, i) => <li key={i}>{topic}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-6">
+                    {quiz.map((q, i) => (
+                      <div key={i}>
+                        <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
+                        <div className="space-y-2">
+                          {q.options.map((opt, j) => {
+                            const isSelected = userAnswers[i] === opt;
+                            const isCorrect = q.answer === opt;
+                            return (
+                              <div key={j} className={cn("w-full text-left h-auto py-2 px-4 rounded border", 
+                                isCorrect ? "bg-green-500/20 border-green-500" : (isSelected ? "bg-red-500/20 border-red-500" : "bg-muted")
+                              )}>
+                                {opt}
+                              </div>
+                            )
+                          })}
+                        </div>
+                         {userAnswers[i] !== q.answer && (
+                          <Alert variant="destructive" className="mt-2">
+                            <AlertDescription>
+                              Correct Answer: {q.answer}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                <DialogFooter className="mt-4">
+                   <Button onClick={handleGenerateQuiz} variant="secondary" type="button">
+                       <RefreshCw className="w-4 h-4 mr-2"/>
+                       Regenerate Quiz
+                   </Button>
+                </DialogFooter>
+              </div>
+            )}
+            </div>
         </DialogContent>
       </Dialog>
       
