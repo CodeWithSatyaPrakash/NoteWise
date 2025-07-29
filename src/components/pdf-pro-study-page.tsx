@@ -320,7 +320,7 @@ export function PdfProStudyPage() {
                   <CardContent className="space-y-4">
                     <div>
                       <Label htmlFor="num-questions">Number of Questions</Label>
-                      <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(Math.max(1, parseInt(e.target.value, 10)))} min="1" max="10" />
+                      <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(parseInt(e.target.value, 10) || 1)} min="1" max="10" />
                     </div>
                   </CardContent>
                   <CardFooter>
