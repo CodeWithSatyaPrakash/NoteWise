@@ -237,27 +237,30 @@ export function PdfProStudyPage() {
   };
 
   const Uploader = () => (
-    <div className="flex items-center justify-center h-full p-4">
-      <Card className="w-full max-w-md text-center shadow-2xl overflow-hidden">
-        <CardHeader className="bg-primary/5 p-8">
-          <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20">
-            <BookOpen className="w-12 h-12 text-primary" />
-          </div>
-          <CardTitle className="mt-4 text-3xl font-bold">PDF Pro Study</CardTitle>
-          <CardDescription className="text-lg">Let AI accelerate your learning.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-8">
-          <label htmlFor="file-upload" className="cursor-pointer block border-2 border-dashed border-border rounded-xl p-12 hover:border-primary hover:bg-muted transition-all duration-300">
-            <div className="space-y-4">
-              <UploadCloud className="mx-auto h-16 w-16 text-primary" />
-              <p className="font-semibold text-lg">Drop your PDF here</p>
-              <p className="text-muted-foreground">or click to browse</p>
-              <p className="text-xs text-muted-foreground pt-4">Max file size: 10MB</p>
+    <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
+      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
+      
+      <div className="mb-8">
+        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4">
+          <BookOpen className="w-12 h-12 text-primary" />
+        </div>
+        <h1 className="text-4xl font-bold tracking-tight">PDF Pro Study</h1>
+        <p className="text-lg text-muted-foreground mt-2">Let AI accelerate your learning journey.</p>
+      </div>
+
+      <label htmlFor="file-upload" className="relative block w-full max-w-lg cursor-pointer">
+        <div className="p-8 rounded-2xl bg-muted/50 border-2 border-dashed border-border transition-all duration-300 hover:border-primary hover:bg-muted/80 hover:shadow-2xl hover:-translate-y-1">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="p-4 bg-primary/10 rounded-full">
+              <UploadCloud className="h-12 w-12 text-primary" />
             </div>
-            <input id="file-upload" type="file" className="sr-only" accept="application/pdf" onChange={handleFileChange} />
-          </label>
-        </CardContent>
-      </Card>
+            <p className="text-xl font-semibold">Drop PDF Here</p>
+            <p className="text-muted-foreground">or click to browse your files</p>
+          </div>
+        </div>
+        <input id="file-upload" type="file" className="sr-only" accept="application/pdf" onChange={handleFileChange} />
+      </label>
+      <p className="text-xs text-muted-foreground mt-6">Max file size: 10MB. We promise to keep your data safe.</p>
     </div>
   );
   
@@ -316,7 +319,7 @@ export function PdfProStudyPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-4 border-b bg-background/80 backdrop-blur-sm">
+      <header className={cn("sticky top-0 z-10 flex items-center justify-between h-16 px-4", summary && "border-b bg-background/80 backdrop-blur-sm")}>
         <div className="flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-primary" />
           <h1 className="text-xl font-bold">PDF Pro Study</h1>
@@ -485,5 +488,3 @@ export function PdfProStudyPage() {
     </div>
   );
 }
-
-    

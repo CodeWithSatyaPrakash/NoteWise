@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'Inter', sans-serif;
-}
-
 @layer base {
   :root {
     --background: 60 56% 91%;
@@ -60,4 +56,20 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+  .animated-grid {
+    --grid-size: 50px;
+    --grid-color: hsl(var(--border) / 0.5);
+    background-image: linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+    animation: grid-scroll 20s linear infinite;
+  }
+}
+
+@keyframes grid-scroll {
+  from { background-position: 0 0; }
+  to { background-position: var(--grid-size) 0; }
 }
