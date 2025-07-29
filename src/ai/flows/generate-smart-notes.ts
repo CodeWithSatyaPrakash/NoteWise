@@ -37,9 +37,10 @@ const prompt = ai.definePrompt({
   Please highlight important terms, formulas, and concepts using Markdown for emphasis (e.g., using **bold** for key terms).
   
   Note Style:
-  {{#if (eq noteLength "short")}}
+  {{#if short}}
   Generate concise, summary-style notes perfect for quick revision (like for a UG student). Focus on the absolute key points.
-  {{else}}
+  {{/if}}
+  {{#if long}}
   Generate detailed, comprehensive notes suitable for in-depth study (like for a PhD student). Cover all topics thoroughly.
   {{/if}}
 
@@ -53,7 +54,11 @@ const generateSmartNotesFlow = ai.defineFlow(
     outputSchema: GenerateSmartNotesOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt({
+      ...input,
+      short: input.noteLength === 'short',
+      long: input.noteLength === 'long',
+    });
     return output!;
   }
 );
