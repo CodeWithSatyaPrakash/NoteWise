@@ -29,7 +29,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import ReactMarkdown from 'react-markdown';
 
 
@@ -433,7 +433,7 @@ export function PdfProStudyPage() {
       </main>
       
       {/* Dialog for AI Summary */}
-      <Dialog open={activeDialog === 'summary'} onOpenChange={() => setActiveDialog(null)}>
+      <Dialog open={activeDialog === 'summary'} onOpenChange={(v) => !v && setActiveDialog(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Sparkles className="text-primary"/> AI Summary</DialogTitle>
@@ -455,113 +455,114 @@ export function PdfProStudyPage() {
       </Dialog>
       
       {/* Dialog for Quiz */}
-      <Dialog open={activeDialog === 'quiz'} onOpenChange={() => setActiveDialog(null)}>
+      <Dialog open={activeDialog === 'quiz'} onOpenChange={(v) => !v && setActiveDialog(null)}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Multiple Choice Quiz</DialogTitle>
             <DialogDescription>Test your knowledge based on the document summary.</DialogDescription>
           </DialogHeader>
           
-          <div>
-            {!quiz && !isQuizLoading && quizScore === null && (
-              <div className="flex flex-col items-center gap-4 py-8">
-                  <Label htmlFor="num-questions">Number of Questions</Label>
-                  <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" placeholder="e.g., 5" className="w-48"/>
-                  <Button type="button" onClick={handleGenerateQuiz} disabled={isQuizLoading || !numQuestions} className="w-48">
-                    {isQuizLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                    Generate Quiz
-                  </Button>
-              </div>
-            )}
+          {!quiz && !isQuizLoading && quizScore === null && (
+            <div className="flex flex-col items-center gap-4 py-8">
+                <Label htmlFor="num-questions">Number of Questions</Label>
+                <Input id="num-questions" type="number" value={numQuestions} onChange={(e) => setNumQuestions(e.target.value === '' ? '' : parseInt(e.target.value, 10))} min="1" max="20" placeholder="e.g., 5" className="w-48"/>
+                <Button type="button" onClick={handleGenerateQuiz} disabled={isQuizLoading || !numQuestions} className="w-48">
+                  {isQuizLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                  Generate Quiz
+                </Button>
+            </div>
+          )}
 
-            {isQuizLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-            
-            {quiz && quizScore === null && (
-              <form onSubmit={handleSubmitQuiz}>
-                <ScrollArea className="h-[60vh] pr-4">
+          {isQuizLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+          
+          {quiz && quizScore === null && (
+            <form onSubmit={handleSubmitQuiz}>
+              <ScrollArea className="h-[60vh] pr-4">
+              <div className="space-y-6">
+                {quiz.map((q, i) => (
+                  <div key={i}>
+                    <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
+                    <div className="space-y-2">
+                      {q.options.map((opt, j) => (
+                        <Button type="button" key={j} variant="outline" className={cn("w-full justify-start text-left h-auto py-2", userAnswers[i] === opt && "border-primary border-2")}
+                          onClick={() => setUserAnswers(prev => ({...prev, [i]: opt}))}
+                          >
+                          {opt}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              </ScrollArea>
+               <DialogFooter className="mt-4">
+                 <Button type="submit" disabled={Object.keys(userAnswers).length !== quiz.length}>
+                  Submit Quiz
+                 </Button>
+               </DialogFooter>
+            </form>
+          )}
+
+          {quizScore !== null && quiz && (
+            <div>
+              <ScrollArea className="h-[60vh] pr-4">
+                <div className="p-4 bg-muted rounded-lg text-center mb-4">
+                  <p className="text-lg font-bold">Your Score: {quizScore}/{quiz.length}</p>
+                  {quizDuration !== null && <p className="text-sm text-muted-foreground">Completed in {quizDuration} seconds</p>}
+                  {reviewTopics.length > 0 && (
+                    <div className="mt-4 text-left">
+                      <p className="font-bold">Topics to review:</p>
+                      <ul className="list-disc list-inside text-sm text-muted-foreground">
+                        {reviewTopics.map((topic, i) => <li key={i}>{topic}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-6">
                   {quiz.map((q, i) => (
                     <div key={i}>
                       <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
                       <div className="space-y-2">
-                        {q.options.map((opt, j) => (
-                          <Button type="button" key={j} variant="outline" className={cn("w-full justify-start text-left h-auto py-2", userAnswers[i] === opt && "border-primary")}
-                            onClick={() => setUserAnswers(prev => ({...prev, [i]: opt}))}
-                            >
-                            {opt}
-                          </Button>
-                        ))}
+                        {q.options.map((opt, j) => {
+                          const isSelected = userAnswers[i] === opt;
+                          const isCorrect = q.answer === opt;
+                          return (
+                            <div key={j} className={cn("w-full text-left h-auto py-2 px-4 rounded border", 
+                              isCorrect ? "bg-green-500/20 border-green-500" : (isSelected ? "bg-red-500/20 border-red-500" : "bg-muted")
+                            )}>
+                              {opt}
+                            </div>
+                          )
+                        })}
                       </div>
+                       {userAnswers[i] !== q.answer && (
+                        <Alert variant="destructive" className="mt-2">
+                          <AlertDescription>
+                            Correct Answer: {q.answer}
+                          </AlertDescription>
+                        </Alert>
+                      )}
                     </div>
                   ))}
                 </div>
-                </ScrollArea>
-                 <DialogFooter className="mt-4">
-                   <Button type="submit" disabled={Object.keys(userAnswers).length !== quiz.length}>
-                    Submit Quiz
-                   </Button>
-                 </DialogFooter>
-              </form>
-            )}
-
-            {quizScore !== null && (
-              <div>
-                <ScrollArea className="h-[60vh] pr-4">
-                  <div className="p-4 bg-muted rounded-lg text-center mb-4">
-                    <p className="text-lg font-bold">Your Score: {quizScore}/{quiz.length}</p>
-                    {quizDuration !== null && <p className="text-sm text-muted-foreground">Completed in {quizDuration} seconds</p>}
-                    {reviewTopics.length > 0 && (
-                      <div className="mt-4 text-left">
-                        <p className="font-bold">Topics to review:</p>
-                        <ul className="list-disc list-inside text-sm text-muted-foreground">
-                          {reviewTopics.map((topic, i) => <li key={i}>{topic}</li>)}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-6">
-                    {quiz.map((q, i) => (
-                      <div key={i}>
-                        <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
-                        <div className="space-y-2">
-                          {q.options.map((opt, j) => {
-                            const isSelected = userAnswers[i] === opt;
-                            const isCorrect = q.answer === opt;
-                            return (
-                              <div key={j} className={cn("w-full text-left h-auto py-2 px-4 rounded border", 
-                                isCorrect ? "bg-green-500/20 border-green-500" : (isSelected ? "bg-red-500/20 border-red-500" : "bg-muted")
-                              )}>
-                                {opt}
-                              </div>
-                            )
-                          })}
-                        </div>
-                         {userAnswers[i] !== q.answer && (
-                          <Alert variant="destructive" className="mt-2">
-                            <AlertDescription>
-                              Correct Answer: {q.answer}
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                <DialogFooter className="mt-4">
-                   <Button onClick={handleGenerateQuiz} variant="secondary" type="button">
-                       <RefreshCw className="w-4 h-4 mr-2"/>
-                       Regenerate Quiz
-                   </Button>
-                </DialogFooter>
-              </div>
-            )}
+              </ScrollArea>
+              <DialogFooter className="mt-4">
+                 <Button onClick={handleGenerateQuiz} variant="secondary" type="button">
+                     <RefreshCw className="w-4 h-4 mr-2"/>
+                     Regenerate Quiz
+                 </Button>
+                 <DialogClose asChild>
+                    <Button variant="outline">Close</Button>
+                 </DialogClose>
+              </DialogFooter>
             </div>
+          )}
         </DialogContent>
       </Dialog>
       
       {/* Dialog for Q&A */}
-      <Dialog open={activeDialog === 'qna'} onOpenChange={() => setActiveDialog(null)}>
+      <Dialog open={activeDialog === 'qna'} onOpenChange={(v) => !v && setActiveDialog(null)}>
         <DialogContent className="h-[80vh] flex flex-col sm:max-w-lg">
           <DialogHeader>
              <DialogTitle className="flex items-center gap-2"><MessageSquare className="text-primary"/> Interactive Q&A</DialogTitle>
@@ -598,7 +599,7 @@ export function PdfProStudyPage() {
       </Dialog>
       
       {/* Dialog for Flashcards */}
-      <Dialog open={activeDialog === 'flashcards'} onOpenChange={() => setActiveDialog(null)}>
+      <Dialog open={activeDialog === 'flashcards'} onOpenChange={(v) => !v && setActiveDialog(null)}>
           <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                   <DialogTitle className="flex items-center gap-2"><Copy className="text-primary"/> Flashcard Generator</DialogTitle>
@@ -650,7 +651,7 @@ export function PdfProStudyPage() {
       </Dialog>
       
        {/* Dialog for Smart Notes */}
-      <Dialog open={activeDialog === 'smart-notes'} onOpenChange={() => setActiveDialog(null)}>
+      <Dialog open={activeDialog === 'smart-notes'} onOpenChange={(v) => !v && setActiveDialog(null)}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><PenSquare className="text-primary"/> Smart Study Notes</DialogTitle>
