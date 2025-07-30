@@ -30,6 +30,9 @@ Auto-generate spaced-repetition flashcards for revision and memorization.
 3. Click any node (e.g., **Generate Quiz**, **Talk to PDF**) to begin learning.
 
 ---
+## 📍 Live Site
+
+👉 [LIVE LINK](https://notewiseai.vercel.app/)
 
 
 ---
