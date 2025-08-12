@@ -1,5 +1,3 @@
-// Implements the real-time AI interaction flow for conversing about the PDF content.
-
 'use server';
 
 /**
@@ -16,6 +14,10 @@ import {z} from 'genkit';
 const RealTimeAIInteractionInputSchema = z.object({
   pdfContent: z.string().describe('The content of the PDF document.'),
   userInput: z.string().describe('The user input/question about the PDF content.'),
+  history: z.array(z.object({
+    role: z.enum(['user', 'ai']),
+    content: z.string()
+  })).optional().describe('The conversation history.')
 });
 export type RealTimeAIInteractionInput = z.infer<typeof RealTimeAIInteractionInputSchema>;
 
@@ -36,6 +38,17 @@ const realTimeAIInteractionPrompt = ai.definePrompt({
 
 PDF Content: {{{pdfContent}}}
 
+Conversation History:
+{{#if history}}
+  {{#each history}}
+    {{#if (eq this.role 'user')}}
+      User: {{{this.content}}}
+    {{else}}
+      AI: {{{this.content}}}
+    {{/if}}
+  {{/each}}
+{{/if}}
+
 User Question: {{{userInput}}}
 
 AI Response:`,  
@@ -47,7 +60,7 @@ const realTimeAIInteractionFlow = ai.defineFlow(
     inputSchema: RealTimeAIInteractionInputSchema,
     outputSchema: RealTimeAIInteractionOutputSchema,
   },
-  async input => {
+  async (input) => {
     const {output} = await realTimeAIInteractionPrompt(input);
     return output!;
   }

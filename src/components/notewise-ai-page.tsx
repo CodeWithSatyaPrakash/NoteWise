@@ -244,7 +244,7 @@ export function NoteWiseAIPage() {
     setIsQnaLoading(true);
 
     try {
-      const result = await realTimeAIInteraction({ pdfContent: summary, userInput: question });
+      const result = await realTimeAIInteraction({ pdfContent: summary, userInput: question, history: qnaMessages });
       setQnaMessages([...newMessages, { role: 'ai', content: result.aiResponse }]);
     } catch (e) {
       if (isOverloadedError(e)) {
@@ -777,5 +777,3 @@ export function NoteWiseAIPage() {
     </div>
   );
 }
-
-    
