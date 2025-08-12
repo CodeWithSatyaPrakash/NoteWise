@@ -21,6 +21,7 @@ import {
   PenSquare,
   Sun,
   Moon,
+  StopCircle,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,7 @@ export function NoteWiseAIPage() {
   const qnaInputRef = useRef<HTMLInputElement>(null);
 
   const [isTtsLoading, setIsTtsLoading] = useState(false);
+  const [isTtsPlaying, setIsTtsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [flashcards, setFlashcards] = useState<Flashcard[] | null>(null);
@@ -105,6 +107,17 @@ export function NoteWiseAIPage() {
       setQuizStartTime(Date.now());
     }
   }, [quiz, quizScore]);
+  
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      const onEnded = () => setIsTtsPlaying(false);
+      audio.addEventListener('ended', onEnded);
+      return () => {
+        audio.removeEventListener('ended', onEnded);
+      };
+    }
+  }, []);
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -246,12 +259,20 @@ export function NoteWiseAIPage() {
   };
 
   const handleTextToSpeech = async (text: string) => {
+    if (isTtsPlaying && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsTtsPlaying(false);
+      return;
+    }
+
     setIsTtsLoading(true);
     try {
       const result = await textToSpeech(text);
       if (audioRef.current) {
         audioRef.current.src = result.media;
         audioRef.current.play();
+        setIsTtsPlaying(true);
       }
     } catch (e) {
        if (isOverloadedError(e)) {
@@ -262,6 +283,14 @@ export function NoteWiseAIPage() {
       console.error(e);
     } finally {
       setIsTtsLoading(false);
+    }
+  };
+
+  const handleStopTts = () => {
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsTtsPlaying(false);
     }
   };
   
@@ -280,6 +309,7 @@ export function NoteWiseAIPage() {
     setActiveDialog(null);
     setFlashcards(null);
     setSmartNotes(null);
+    handleStopTts();
   };
   
   const handleSubmitQuiz = (e: FormEvent) => {
@@ -454,7 +484,7 @@ export function NoteWiseAIPage() {
       </footer>
       
       {/* Dialog for AI Summary */}
-      <Dialog open={activeDialog === 'summary'} onOpenChange={(v) => !v && setActiveDialog(null)}>
+      <Dialog open={activeDialog === 'summary'} onOpenChange={(v) => { if (!v) { setActiveDialog(null); handleStopTts(); } }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Sparkles className="text-primary"/> AI Summary</DialogTitle>
@@ -464,10 +494,17 @@ export function NoteWiseAIPage() {
             <p className="text-sm">{summary}</p>
           </ScrollArea>
           <DialogFooter className="gap-2 sm:justify-start">
-             <Button variant="outline" size="sm" onClick={() => summary && handleTextToSpeech(summary)} disabled={isTtsLoading}>
-                {isTtsLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                Listen
-             </Button>
+             {isTtsPlaying ? (
+                 <Button variant="destructive" size="sm" onClick={handleStopTts}>
+                    <StopCircle className="w-4 h-4 mr-2" />
+                    Stop
+                 </Button>
+             ) : (
+                <Button variant="outline" size="sm" onClick={() => summary && handleTextToSpeech(summary)} disabled={isTtsLoading}>
+                    {isTtsLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Volume2 className="w-4 h-4 mr-2" />}
+                    Listen
+                </Button>
+             )}
              <Button variant="ghost" size="sm" onClick={() => summary && navigator.clipboard.writeText(summary)}>
                 <Clipboard className="w-4 h-4 mr-2" /> Copy
              </Button>
@@ -740,3 +777,5 @@ export function NoteWiseAIPage() {
     </div>
   );
 }
+
+    
