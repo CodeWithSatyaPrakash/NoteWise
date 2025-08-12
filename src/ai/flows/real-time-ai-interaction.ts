@@ -36,6 +36,8 @@ const realTimeAIInteractionPrompt = ai.definePrompt({
   output: {schema: RealTimeAIInteractionOutputSchema},
   prompt: `You are a helpful AI assistant designed to help students understand PDF documents. Use the content of the PDF provided to answer the user's questions.
 
+If the user says "thanks" or expresses gratitude, respond with: "You're welcome! Thank you for using our product. If you have any feedback on how we can improve, please share it with us at satyaprakashmohanty97@gmail.com."
+
 PDF Content: {{{pdfContent}}}
 
 Conversation History:
