@@ -32,7 +32,7 @@ export async function realTimeAIInteraction(input: RealTimeAIInteractionInput): 
 
 const realTimeAIInteractionPrompt = ai.definePrompt({
   name: 'realTimeAIInteractionPrompt',
-  input: {schema: RealTimeAIInteractionInputSchema},
+  input: {schema: z.any()},
   output: {schema: RealTimeAIInteractionOutputSchema},
   prompt: `You are a helpful AI assistant designed to help students understand PDF documents. Use the content of the PDF provided to answer the user's questions.
 
@@ -41,7 +41,7 @@ PDF Content: {{{pdfContent}}}
 Conversation History:
 {{#if history}}
   {{#each history}}
-    {{#if (eq this.role 'user')}}
+    {{#if this.isUser}}
       User: {{{this.content}}}
     {{else}}
       AI: {{{this.content}}}
@@ -61,7 +61,16 @@ const realTimeAIInteractionFlow = ai.defineFlow(
     outputSchema: RealTimeAIInteractionOutputSchema,
   },
   async (input) => {
-    const {output} = await realTimeAIInteractionPrompt(input);
+    const historyWithRoles = input.history?.map(item => ({
+        ...item,
+        isUser: item.role === 'user',
+        isAi: item.role === 'ai',
+    }));
+
+    const {output} = await realTimeAIInteractionPrompt({
+        ...input,
+        history: historyWithRoles,
+    });
     return output!;
   }
 );
