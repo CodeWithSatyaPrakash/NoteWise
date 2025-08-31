@@ -365,7 +365,7 @@ export function NoteWiseAIPage() {
             <div className="p-4 bg-primary/10 rounded-full group-hover:animate-bounce">
               <UploadCloud className="h-12 w-12 text-primary" />
             </div>
-            <p className="text-xl font-semibold">Drop PDF Here (Scanned & Handwritten)</p>
+            <p className="text-xl font-semibold">Drop PDF Here, scanned or handwritten</p>
             <p className="text-muted-foreground">or click to browse your files</p>
           </div>
         </div>
