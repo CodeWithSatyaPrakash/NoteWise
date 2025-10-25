@@ -37,6 +37,7 @@ import ReactMarkdown from 'react-markdown';
 import { useTheme } from 'next-themes';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import VaporizeTextCycle, { Tag } from '@/components/ui/vapour-text-effect';
+import { SplashScreen } from '@/components/splash-screen';
 
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
@@ -68,6 +69,7 @@ const isOverloadedError = (e: any) => {
 }
 
 export function NoteWiseAIPage() {
+  const [showUploader, setShowUploader] = useState(false);
   const { setTheme, theme } = useTheme();
   const { toast } = useToast();
   const [pdfText, setPdfText] = useState<string | null>(null);
@@ -339,6 +341,7 @@ export function NoteWiseAIPage() {
     setActiveDialog(null);
     setFlashcards(null);
     setSmartNotes(null);
+    setShowUploader(true); // Go back to uploader
     handleStopTts();
   };
   
@@ -385,7 +388,7 @@ export function NoteWiseAIPage() {
         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4 animate-pulse">
           <BookOpen className="w-12 h-12 text-primary" />
         </div>
-        <h1 className="text-4xl font-bold">NoteWise AI</h1>
+        <h1 className="text-4xl font-bold">Upload Your Document</h1>
         <p className="text-lg text-muted-foreground mt-2">Let AI accelerate your learning journey.</p>
       </div>
 
@@ -493,9 +496,19 @@ export function NoteWiseAIPage() {
     );
   }
 
+  const renderContent = () => {
+    if (!showUploader) {
+      return <SplashScreen onGetStarted={() => setShowUploader(true)} />;
+    }
+    if (!pdfText) {
+      return <Uploader />;
+    }
+    return <FeatureHub />;
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
-      <header className={cn("sticky top-0 z-50 flex items-center justify-between h-16 px-4", pdfText && "border-b bg-background/80 backdrop-blur-sm")}>
+      <header className={cn("sticky top-0 z-50 flex items-center justify-between h-16 px-4", (showUploader || pdfText) && "border-b bg-background/80 backdrop-blur-sm")}>
         <div className="flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-primary" />
           <h1 className="text-xl font-bold">NoteWise AI</h1>
@@ -520,12 +533,14 @@ export function NoteWiseAIPage() {
       </header>
       
       <main className="flex-1 flex items-center justify-center">
-        {!pdfText ? <Uploader /> : <FeatureHub />}
+        {renderContent()}
       </main>
 
-      <footer className="text-center p-4 text-sm text-muted-foreground">
-        Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
-      </footer>
+      {(showUploader || pdfText) && (
+        <footer className="text-center p-4 text-sm text-muted-foreground">
+          Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
+        </footer>
+      )}
       
       {/* Dialog for AI Summary */}
       <Dialog open={activeDialog === 'summary'} onOpenChange={(v) => { if (!v) { setActiveDialog(null); handleStopTts(); } }}>
