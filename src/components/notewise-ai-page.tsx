@@ -107,6 +107,9 @@ export function NoteWiseAIPage() {
   const [noteLength, setNoteLength] = useState<'short' | 'long'>('short');
 
   const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
+  
+  const [rotationAngle, setRotationAngle] = useState<number>(0);
+  const [autoRotate, setAutoRotate] = useState<boolean>(true);
 
   useEffect(() => {
     if (quiz && quizScore === null) {
@@ -124,6 +127,25 @@ export function NoteWiseAIPage() {
       };
     }
   }, []);
+
+  useEffect(() => {
+    let rotationTimer: NodeJS.Timeout;
+
+    if (autoRotate && pdfText) {
+      rotationTimer = setInterval(() => {
+        setRotationAngle((prev) => {
+          const newAngle = (prev + 0.3) % 360;
+          return Number(newAngle.toFixed(3));
+        });
+      }, 50);
+    }
+
+    return () => {
+      if (rotationTimer) {
+        clearInterval(rotationTimer);
+      }
+    };
+  }, [autoRotate, pdfText]);
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -408,11 +430,36 @@ export function NoteWiseAIPage() {
     </div>
   );
   
-  const FeatureNode = ({ icon, title, onClick, className }: { icon: React.ElementType, title: string, onClick: () => void, className?: string }) => {
+  const FeatureNode = ({ icon, title, onClick, nodeIndex, totalNodes }: { icon: React.ElementType, title: string, onClick: () => void, nodeIndex: number, totalNodes: number }) => {
     const Icon = icon;
     
+    const angle = ((nodeIndex / totalNodes) * 360 + rotationAngle) % 360;
+    const radius = 200; // Orbit radius
+    const radian = (angle * Math.PI) / 180;
+
+    const x = radius * Math.cos(radian);
+    const y = radius * Math.sin(radian);
+    const zIndex = Math.round(100 + 50 * Math.sin(radian));
+    const scale = 0.8 + 0.2 * ((1 + Math.sin(radian)) / 2);
+    const opacity = 0.6 + 0.4 * ((1 + Math.sin(radian)) / 2);
+
+
+    const style = {
+      transform: `translate(${x}px, ${y}px) scale(${scale})`,
+      zIndex: zIndex,
+      opacity: opacity,
+    };
+    
+    const stopRotation = () => setAutoRotate(false);
+    const startRotation = () => setAutoRotate(true);
+
     return (
-      <div className={cn("group relative z-10", className)}>
+      <div 
+        className="group absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-500"
+        style={style}
+        onMouseEnter={stopRotation}
+        onMouseLeave={startRotation}
+      >
          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
          <Button onClick={onClick} className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg" variant="outline">
           <Icon className="w-8 h-8 text-primary" />
@@ -422,48 +469,44 @@ export function NoteWiseAIPage() {
     );
   };
   
-  const FeatureHub = () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_-1px)] [background-size:16px_16px] animated-grid"></div>
-      
-      <div className="relative w-[500px] h-[500px]">
-        {/* SVG Lines */}
-        <svg className="absolute w-full h-full" style={{ top: 0, left: 0 }}>
-          <line x1="50%" y1="50%" x2="calc(50% - 110px)" y2="calc(50% - 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="calc(50% + 110px)" y2="calc(50% - 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="50%" y2="calc(50% - 180px)" stroke="hsl(var(--border))" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="calc(50% - 110px)" y2="calc(50% + 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="calc(50% + 110px)" y2="calc(50% + 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
-        </svg>
-        
-        {/* Central Hub */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center text-center">
-          <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4">
-            <Lightbulb className="w-10 h-10 text-primary" />
-          </div>
-          <h2 className="text-2xl font-bold">Doc Received!</h2>
-          <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
+  const FeatureHub = () => {
+      const features = [
+        { icon: Sparkles, title: "AI Summary", onClick: handleOpenSummary },
+        { icon: HelpCircle, title: "Generate Quiz", onClick: () => setActiveDialog('quiz') },
+        { icon: PenSquare, title: "Smart Notes", onClick: () => setActiveDialog('smart-notes') },
+        { icon: MessageSquare, title: "Talk to PDF", onClick: () => setActiveDialog('qna') },
+        { icon: Copy, title: "Flashcards", onClick: () => setActiveDialog('flashcards') },
+      ];
+
+      return (
+        <div className="w-full h-full flex items-center justify-center overflow-hidden" style={{ perspective: "1000px" }}>
+            <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
+
+            <div className="relative w-[500px] h-[500px]">
+                {/* Central Hub */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center text-center">
+                  <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4 animate-pulse">
+                      <Lightbulb className="w-10 h-10 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold">Doc Received!</h2>
+                  <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
+                </div>
+
+                {/* Orbiting Feature Nodes */}
+                {features.map((feature, index) => (
+                    <FeatureNode 
+                        key={feature.title}
+                        icon={feature.icon}
+                        title={feature.title}
+                        onClick={feature.onClick}
+                        nodeIndex={index}
+                        totalNodes={features.length}
+                    />
+                ))}
+            </div>
         </div>
-        
-        {/* Feature Nodes */}
-        <div className="absolute top-[calc(50%-180px)] left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <FeatureNode icon={Sparkles} title="AI Summary" onClick={handleOpenSummary} />
-        </div>
-        <div className="absolute top-[calc(50%-110px)] left-[calc(50%-110px)] -translate-x-1/2 -translate-y-1/2">
-            <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} />
-        </div>
-        <div className="absolute top-[calc(50%-110px)] right-[calc(50%-242px)] -translate-x-1/2 -translate-y-1/2">
-            <FeatureNode icon={PenSquare} title="Smart Notes" onClick={() => setActiveDialog('smart-notes')} />
-        </div>
-        <div className="absolute bottom-[calc(50%-242px)] left-[calc(50%-110px)] -translate-x-1/2 -translate-y-1/2">
-            <FeatureNode icon={MessageSquare} title="Talk to PDF" onClick={() => setActiveDialog('qna')} />
-        </div>
-        <div className="absolute bottom-[calc(50%-242px)] right-[calc(50%-242px)] -translate-x-1/2 -translate-y-1/2">
-            <FeatureNode icon={Copy} title="Flashcards" onClick={() => setActiveDialog('flashcards')} />
-        </div>
-      </div>
-    </div>
-  );
+      );
+  };
 
 
   if (isLoading) {
@@ -497,7 +540,7 @@ export function NoteWiseAIPage() {
   }
 
   const renderContent = () => {
-    if (!showUploader) {
+    if (!showUploader && !pdfText) {
       return <SplashScreen onGetStarted={() => setShowUploader(true)} />;
     }
     if (!pdfText) {
@@ -508,7 +551,7 @@ export function NoteWiseAIPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {showUploader && (
+      {(showUploader || pdfText) && (
         <header className={cn("sticky top-0 z-50 flex items-center justify-between h-16 px-4", (showUploader || pdfText) && "border-b bg-background/80 backdrop-blur-sm")}>
           <div className="flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-primary" />
@@ -538,7 +581,7 @@ export function NoteWiseAIPage() {
         {renderContent()}
       </main>
 
-      {showUploader && (
+      {showUploader && !pdfText && (
         <footer className="text-center p-4 text-sm text-muted-foreground">
           Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
         </footer>
