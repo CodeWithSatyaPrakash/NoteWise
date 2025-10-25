@@ -134,7 +134,7 @@ export function NoteWiseAIPage() {
     if (autoRotate && pdfText) {
       rotationTimer = setInterval(() => {
         setRotationAngle((prev) => {
-          const newAngle = (prev + 0.3) % 360;
+          const newAngle = (prev + 0.1) % 360;
           return Number(newAngle.toFixed(3));
         });
       }, 50);
@@ -294,7 +294,7 @@ export function NoteWiseAIPage() {
     
     const newMessages: QnaMessage[] = [...qnaMessages, { role: 'user', content: question }];
     setQnaMessages(newMessages);
-    setIsQnaLoading(true);
+setIsQnaLoading(true);
 
     try {
       const result = await realTimeAIInteraction({ pdfContent: pdfText, userInput: question, history: qnaMessages });
@@ -404,7 +404,7 @@ export function NoteWiseAIPage() {
 
   const Uploader = () => (
     <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
-      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
+      <div className="absolute inset-0 -z-10 h-full w-full bg-background animated-grid"></div>
       
       <div className="mb-8">
         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4 animate-pulse">
@@ -441,12 +441,11 @@ export function NoteWiseAIPage() {
     const y = radius * Math.sin(radian);
     const zIndex = Math.round(100 + 50 * Math.sin(radian));
     const scale = 0.8 + 0.2 * ((1 + Math.sin(radian)) / 2);
-    const opacity = 0.6 + 0.4 * ((1 + Math.sin(radian)) / 2);
     
     const style = {
       transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`,
       zIndex: zIndex,
-      opacity: opacity,
+      opacity: 0.6 + 0.4 * ((1 + Math.sin(radian)) / 2),
     };
     
     const stopRotation = () => setAutoRotate(false);
@@ -454,13 +453,22 @@ export function NoteWiseAIPage() {
 
     return (
       <div 
-        className="group absolute top-1/2 left-1/2 transition-transform duration-500"
+        className="group absolute top-1/2 left-1/2 transition-all duration-300 ease-in-out"
         style={style}
         onMouseEnter={stopRotation}
         onMouseLeave={startRotation}
       >
-         <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-         <Button onClick={onClick} className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg" variant="outline">
+         <Button
+            onClick={onClick}
+            className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out group-hover:scale-110"
+            variant="outline"
+            style={{
+              boxShadow: `0 0 15px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)`,
+            }}
+          >
+          <div className="absolute inset-0 rounded-full overflow-hidden">
+            <div className="absolute top-0 left-1/2 w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_4s_ease-in-out_infinite]" />
+          </div>
           <Icon className="w-8 h-8 text-primary" />
           <span className="text-sm text-center font-semibold text-foreground">
             {title}
@@ -481,22 +489,31 @@ export function NoteWiseAIPage() {
 
       return (
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden" style={{ perspective: "1000px" }}>
-            <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
+            <div className="absolute inset-0 -z-10 h-full w-full bg-background animated-grid"></div>
 
             <div className="relative flex items-center justify-center" style={{ width: '600px', height: '600px' }}>
                 {/* Central Hub */}
                 <div className="absolute z-20 flex flex-col items-center text-center">
-                  <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4 animate-pulse">
+                  <div className="mx-auto bg-primary/20 p-4 rounded-full w-fit border-8 border-primary/30 animate-pulse"
+                    style={{
+                        animationDuration: '2s',
+                        boxShadow: `0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.4)`
+                    }}>
                       <Lightbulb className="w-10 h-10 text-primary" />
                   </div>
-                  <h2 className="text-2xl font-bold">Doc Received!</h2>
+                  <h2 
+                    className="text-2xl font-bold mt-4" 
+                    style={{ animation: 'float-glow 4s ease-in-out infinite' }}
+                  >
+                    Doc Received!
+                  </h2>
                   <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
                 </div>
                 
                 {/* Orbital Rings */}
-                <div className="absolute w-[400px] h-[400px] rounded-full border border-border/50 animate-pulse"></div>
-                <div className="absolute w-[500px] h-[500px] rounded-full border border-border/30 animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                <div className="absolute w-[600px] h-[600px] rounded-full border border-border/10 animate-pulse" style={{animationDelay: '1s'}}></div>
+                <div className="absolute w-[400px] h-[400px] rounded-full border border-border/20"></div>
+                <div className="absolute w-[500px] h-[500px] rounded-full border border-border/10 opacity-70"></div>
+                <div className="absolute w-[600px] h-[600px] rounded-full border border-border/5 opacity-50"></div>
 
 
                 {/* Orbiting Feature Nodes */}

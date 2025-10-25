@@ -60,12 +60,11 @@
 
 @layer utilities {
   .animated-grid {
-    --grid-size: 50px;
-    --grid-color: hsl(var(--border) / 0.5);
-    background-image: linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-                      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+    --grid-size: 60px;
+    background-image: linear-gradient(to right, hsl(var(--border) / 0.1) 1px, transparent 1px),
+                      linear-gradient(to bottom, hsl(var(--border) / 0.1) 1px, transparent 1px);
     background-size: var(--grid-size) var(--grid-size);
-    animation: grid-scroll 20s linear infinite;
+    animation: grid-scroll 30s linear infinite;
   }
 }
 
@@ -74,16 +73,19 @@
   to { background-position: var(--grid-size) 0; }
 }
 
-@keyframes tilt {
-  0%, 50%, 100% {
-    transform: rotate(0deg);
+@keyframes float-glow {
+  0%, 100% {
+    transform: translateY(0);
+    text-shadow: 0 0 5px hsl(var(--primary) / 0.5), 0 0 10px hsl(var(--primary) / 0.5);
   }
-  25% {
-    transform: rotate(0.5deg);
-  }
-  75% {
-    transform: rotate(-0.5deg);
+  50% {
+    transform: translateY(-5px);
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.7), 0 0 20px hsl(var(--primary) / 0.7);
   }
 }
 
+@keyframes shine {
+  0% { transform: translateX(-100%) rotate(20deg); }
+  100% { transform: translateX(100%) rotate(20deg); }
+}
     
