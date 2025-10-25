@@ -479,18 +479,24 @@ export function NoteWiseAIPage() {
       ];
 
       return (
-        <div className="w-full h-full flex items-center justify-center overflow-hidden" style={{ perspective: "1000px" }}>
+        <div className="w-full h-full flex flex-col items-center justify-center overflow-hidden" style={{ perspective: "1000px" }}>
             <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
 
-            <div className="relative w-[500px] h-[500px]">
+            <div className="relative flex items-center justify-center" style={{ width: '500px', height: '500px' }}>
                 {/* Central Hub */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center text-center">
+                <div className="absolute z-20 flex flex-col items-center text-center">
                   <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4 animate-pulse">
                       <Lightbulb className="w-10 h-10 text-primary" />
                   </div>
                   <h2 className="text-2xl font-bold">Doc Received!</h2>
                   <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
                 </div>
+                
+                {/* Orbital Rings */}
+                <div className="absolute w-[400px] h-[400px] rounded-full border border-border/50 animate-pulse"></div>
+                <div className="absolute w-[500px] h-[500px] rounded-full border border-border/30 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <div className="absolute w-[600px] h-[600px] rounded-full border border-border/10 animate-pulse" style={{animationDelay: '1s'}}></div>
+
 
                 {/* Orbiting Feature Nodes */}
                 {features.map((feature, index) => (
