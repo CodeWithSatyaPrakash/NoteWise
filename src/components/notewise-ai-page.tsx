@@ -126,8 +126,14 @@ export function NoteWiseAIPage() {
     
     const reader = new FileReader();
     reader.readAsDataURL(file);
+
     reader.onload = async () => {
       const pdfDataUri = reader.result as string;
+      if (!pdfDataUri) {
+          toast({ variant: 'destructive', title: 'File Read Error', description: 'Could not read the file. It might be corrupted or in a format the browser cannot process.' });
+          handleReset();
+          return;
+      }
       try {
         setLoadingMessage('Generating summary...');
         const result = await pdfUploadAndSummarize({ pdfDataUri });
@@ -145,7 +151,7 @@ export function NoteWiseAIPage() {
       }
     };
     reader.onerror = () => {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to read the file.' });
+      toast({ variant: 'destructive', title: 'File Read Error', description: 'Could not read file. This may be a browser issue. Try another browser or a different PDF.' });
       handleReset();
     };
   };
