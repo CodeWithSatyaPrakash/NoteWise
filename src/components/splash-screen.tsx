@@ -43,9 +43,6 @@ export function SplashScreen({ onGetStarted }: { onGetStarted: () => void }) {
           {/* Radial Gradient to prevent sharp edges */}
           <div className="absolute inset-0 w-full h-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
         </div>
-        <p className="text-neutral-300 text-center text-lg md:text-xl max-w-2xl mt-[-2rem]">
-          Transform your PDFs into summaries, quizzes, and interactive study materials. Let AI accelerate your learning journey.
-        </p>
         <Button size="lg" className="mt-8" onClick={onGetStarted}>
           Get Started
           <ArrowRight className="ml-2" />
