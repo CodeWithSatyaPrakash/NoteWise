@@ -442,6 +442,8 @@ export function NoteWiseAIPage() {
     const zIndex = Math.round(100 + 50 * Math.sin(radian));
     const scale = 0.8 + 0.2 * ((1 + Math.sin(radian)) / 2);
     const opacity = 0.6 + 0.4 * ((1 + Math.sin(radian)) / 2);
+    
+    const isFront = angle > 240 && angle < 300;
 
     const style = {
       transform: `translate(${x}px, ${y}px) scale(${scale})`,
@@ -462,7 +464,9 @@ export function NoteWiseAIPage() {
          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
          <Button onClick={onClick} className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg" variant="outline">
           <Icon className="w-8 h-8 text-primary" />
-          <span className="text-sm text-center font-semibold text-foreground">{title}</span>
+          <span className="text-sm text-center font-semibold text-foreground">
+            {title}
+          </span>
         </Button>
       </div>
     );
@@ -583,7 +587,9 @@ export function NoteWiseAIPage() {
       )}
       
       <main className="flex-1 flex flex-col">
-        {renderContent()}
+        <div className="flex-1 flex items-center justify-center">
+            {renderContent()}
+        </div>
       </main>
 
       {showUploader && !pdfText && (
