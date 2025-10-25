@@ -385,27 +385,7 @@ export function NoteWiseAIPage() {
         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit border-8 border-primary/20 mb-4 animate-pulse">
           <BookOpen className="w-12 h-12 text-primary" />
         </div>
-        <div className="h-24 flex items-center justify-center">
-            <VaporizeTextCycle
-                texts={["NoteWise AI", "Study Smarter", "Learn Faster"]}
-                font={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "40px",
-                    fontWeight: 700
-                }}
-                color={`hsl(var(--foreground))`}
-                spread={3}
-                density={4}
-                animation={{
-                    vaporizeDuration: 1.5,
-                    fadeInDuration: 0.8,
-                    waitDuration: 1.2
-                }}
-                direction="left-to-right"
-                alignment="center"
-                tag={Tag.H1}
-            />
-        </div>
+        <h1 className="text-4xl font-bold">NoteWise AI</h1>
         <p className="text-lg text-muted-foreground mt-2">Let AI accelerate your learning journey.</p>
       </div>
 
@@ -486,9 +466,29 @@ export function NoteWiseAIPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center">
-        <Loader2 className="w-16 h-16 animate-spin text-primary" />
-        <p className="mt-4 text-lg font-semibold">{loadingMessage}</p>
-        <p className="text-muted-foreground">{fileName}</p>
+        <Loader2 className="w-16 h-16 animate-spin text-primary mb-8" />
+        <div className="h-12 flex items-center justify-center">
+            <VaporizeTextCycle
+                texts={["Extracting text...", "Analyzing content...", "Almost there..."]}
+                font={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: "24px",
+                    fontWeight: 600
+                }}
+                color={`hsl(var(--foreground))`}
+                spread={1}
+                density={5}
+                animation={{
+                    vaporizeDuration: 1.5,
+                    fadeInDuration: 0.8,
+                    waitDuration: 1
+                }}
+                direction="left-to-right"
+                alignment="center"
+                tag={Tag.P}
+            />
+        </div>
+        <p className="text-muted-foreground mt-2">{fileName}</p>
       </div>
     );
   }
