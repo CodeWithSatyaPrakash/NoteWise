@@ -443,10 +443,8 @@ export function NoteWiseAIPage() {
     const scale = 0.8 + 0.2 * ((1 + Math.sin(radian)) / 2);
     const opacity = 0.6 + 0.4 * ((1 + Math.sin(radian)) / 2);
     
-    const isFront = angle > 240 && angle < 300;
-
     const style = {
-      transform: `translate(${x}px, ${y}px) scale(${scale})`,
+      transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`,
       zIndex: zIndex,
       opacity: opacity,
     };
@@ -456,12 +454,12 @@ export function NoteWiseAIPage() {
 
     return (
       <div 
-        className="group absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-500"
+        className="group absolute top-1/2 left-1/2 transition-transform duration-500"
         style={style}
         onMouseEnter={stopRotation}
         onMouseLeave={startRotation}
       >
-         <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+         <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
          <Button onClick={onClick} className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg" variant="outline">
           <Icon className="w-8 h-8 text-primary" />
           <span className="text-sm text-center font-semibold text-foreground">
@@ -482,7 +480,7 @@ export function NoteWiseAIPage() {
       ];
 
       return (
-        <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden" style={{ perspective: "1000px" }}>
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden" style={{ perspective: "1000px" }}>
             <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
 
             <div className="relative flex items-center justify-center" style={{ width: '600px', height: '600px' }}>
