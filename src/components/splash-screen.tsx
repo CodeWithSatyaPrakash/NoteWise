@@ -44,7 +44,7 @@ export function SplashScreen({ onGetStarted }: { onGetStarted: () => void }) {
           <div className="absolute inset-0 w-full h-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
         </div>
         <MagnetizeButton
-          className="mt-8 bg-white/10 hover:bg-white/20 text-white border-white/20"
+          className="bg-white/10 hover:bg-white/20 text-white border-white/20"
           onClick={onGetStarted}
         >
           Get Started
