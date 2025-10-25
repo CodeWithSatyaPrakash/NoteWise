@@ -22,7 +22,6 @@ import {
   Sun,
   Moon,
   StopCircle,
-  Youtube,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -46,7 +45,6 @@ import { realTimeAIInteraction } from '@/ai/flows/real-time-ai-interaction';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { generateFlashcards, GenerateFlashcardsOutput } from '@/ai/flows/generate-flashcards';
 import { generateSmartNotes } from '@/ai/flows/generate-smart-notes';
-import { topicRelatedVideoSuggestions, TopicRelatedVideoSuggestionsOutput } from '@/ai/flows/topic-related-video-suggestions';
 
 type QuizItem = {
   question: string;
@@ -61,9 +59,8 @@ type QnaMessage = {
 };
 
 type Flashcard = GenerateFlashcardsOutput['flashcards'][0];
-type VideoSuggestion = TopicRelatedVideoSuggestionsOutput['videoSuggestions'][0];
 
-type FeatureDialog = 'summary' | 'quiz' | 'qna' | 'flashcards' | 'smart-notes' | 'videos' | null;
+type FeatureDialog = 'summary' | 'quiz' | 'qna' | 'flashcards' | 'smart-notes' | null;
 
 const isOverloadedError = (e: any) => {
     return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'));
@@ -105,10 +102,6 @@ export function NoteWiseAIPage() {
   const [smartNotes, setSmartNotes] = useState<string | null>(null);
   const [isSmartNotesLoading, setIsSmartNotesLoading] = useState(false);
   const [noteLength, setNoteLength] = useState<'short' | 'long'>('short');
-
-  const [videoSuggestions, setVideoSuggestions] = useState<VideoSuggestion[] | null>(null);
-  const [isVideoLoading, setIsVideoLoading] = useState(false);
-
 
   const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
 
@@ -268,25 +261,6 @@ export function NoteWiseAIPage() {
     }
   };
   
-  const handleGenerateVideoSuggestions = async () => {
-    if (!pdfText) return;
-    setIsVideoLoading(true);
-    setVideoSuggestions(null);
-    try {
-        const result = await topicRelatedVideoSuggestions({ pdfContent: pdfText });
-        setVideoSuggestions(result.videoSuggestions);
-    } catch (e) {
-        if (isOverloadedError(e)) {
-            toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
-        } else {
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not generate video suggestions. Please try again.' });
-        }
-        console.error(e);
-    } finally {
-        setIsVideoLoading(false);
-    }
-  };
-
 
   const handleAskQuestion = async () => {
     if (!pdfText || !qnaInputRef.current?.value.trim()) return;
@@ -364,7 +338,6 @@ export function NoteWiseAIPage() {
     setActiveDialog(null);
     setFlashcards(null);
     setSmartNotes(null);
-    setVideoSuggestions(null);
     handleStopTts();
   };
   
@@ -447,17 +420,16 @@ export function NoteWiseAIPage() {
   
   const FeatureHub = () => (
     <div className="w-full h-full flex items-center justify-center">
-      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_1px)] [background-size:16px_16px] animated-grid"></div>
+      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(hsl(var(--primary)/0.2)_1px,transparent_-1px)] [background-size:16px_16px] animated-grid"></div>
       
-      <div className="relative w-[600px] h-[500px]">
+      <div className="relative w-[500px] h-[500px]">
         {/* SVG Lines */}
         <svg className="absolute w-full h-full" style={{ top: 0, left: 0 }}>
-            <line x1="50%" y1="50%" x2="calc(50% - 110px)" y2="calc(50% - 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
-            <line x1="50%" y1="50%" x2="calc(50% + 110px)" y2="calc(50% - 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
-            <line x1="50%" y1="50%" x2="50%" y2="calc(50% - 180px)" stroke="hsl(var(--border))" strokeWidth="2" />
-            <line x1="50%" y1="50%" x2="calc(50% - 110px)" y2="calc(50% + 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
-            <line x1="50%" y1="50%" x2="calc(50% + 110px)" y2="calc(50% + 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
-            <line x1="50%" y1="50%" x2="50%" y2="calc(50% + 180px)" stroke="hsl(var(--border))" strokeWidth="2" />
+          <line x1="50%" y1="50%" x2="calc(50% - 110px)" y2="calc(50% - 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
+          <line x1="50%" y1="50%" x2="calc(50% + 110px)" y2="calc(50% - 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
+          <line x1="50%" y1="50%" x2="50%" y2="calc(50% - 180px)" stroke="hsl(var(--border))" strokeWidth="2" />
+          <line x1="50%" y1="50%" x2="calc(50% - 110px)" y2="calc(50% + 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
+          <line x1="50%" y1="50%" x2="calc(50% + 110px)" y2="calc(50% + 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
         </svg>
         
         {/* Central Hub */}
@@ -485,10 +457,6 @@ export function NoteWiseAIPage() {
         <div className="absolute bottom-[calc(50%-242px)] right-[calc(50%-242px)] -translate-x-1/2 -translate-y-1/2">
             <FeatureNode icon={Copy} title="Flashcards" onClick={() => setActiveDialog('flashcards')} />
         </div>
-        <div className="absolute bottom-[calc(50%-180px-132px)] left-1/2 -translate-x-1/2 -translate-y-1/2">
-             <FeatureNode icon={Youtube} title="Video Suggestions" onClick={() => setActiveDialog('videos')} />
-        </div>
-
       </div>
     </div>
   );
@@ -827,58 +795,6 @@ export function NoteWiseAIPage() {
             </>
           )}
         </DialogContent>
-      </Dialog>
-
-      {/* Dialog for Video Suggestions */}
-      <Dialog open={activeDialog === 'videos'} onOpenChange={(v) => !v && setActiveDialog(null)}>
-          <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2"><Youtube className="text-primary"/> Video Suggestions</DialogTitle>
-                  <DialogDescription>Related videos to help you understand the content.</DialogDescription>
-              </DialogHeader>
-
-              {(!videoSuggestions && !isVideoLoading) && (
-                 <div className="flex flex-col items-center gap-4 py-8">
-                      <p className="text-center text-muted-foreground">Find relevant videos based on the document.</p>
-                      <Button onClick={handleGenerateVideoSuggestions} disabled={isVideoLoading}>
-                          {isVideoLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                          Suggest Videos
-                      </Button>
-                  </div>
-              )}
-              
-              {isVideoLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-
-              {videoSuggestions && (
-                  <ScrollArea className="h-96 pr-4">
-                      <div className="space-y-4">
-                          {videoSuggestions.map((video, i) => (
-                              <Card key={i}>
-                                  <CardContent className="p-4 flex gap-4">
-                                      <a href={`https://www.youtube.com/watch?v=${video.videoId}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                                          <img src={`https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`} alt={video.title} className="w-32 h-auto rounded" />
-                                      </a>
-                                      <div>
-                                          <a href={`https://www.youtube.com/watch?v=${video.videoId}`} target="_blank" rel="noopener noreferrer">
-                                            <p className="font-semibold hover:underline">{video.title}</p>
-                                          </a>
-                                          <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{video.description}</p>
-                                      </div>
-                                  </CardContent>
-                              </Card>
-                          ))}
-                      </div>
-                  </ScrollArea>
-              )}
-              {videoSuggestions && (
-                 <DialogFooter className="mt-4">
-                     <Button onClick={handleGenerateVideoSuggestions} variant="secondary">
-                         <RefreshCw className="w-4 h-4 mr-2" />
-                         Regenerate
-                     </Button>
-                 </DialogFooter>
-               )}
-          </DialogContent>
       </Dialog>
       
       <audio ref={audioRef} className="hidden" />
