@@ -442,6 +442,7 @@ export function NoteWiseAIPage() {
     const zIndex = Math.round(100 + 50 * Math.sin(radian));
     const scale = 0.8 + 0.2 * ((1 + Math.sin(radian)) / 2);
     const opacity = 0.6 + 0.4 * ((1 + Math.sin(radian)) / 2);
+    const textOpacity = Math.max(0, Math.sin(radian) * 2 - 1);
 
 
     const style = {
@@ -460,10 +461,10 @@ export function NoteWiseAIPage() {
         onMouseEnter={stopRotation}
         onMouseLeave={startRotation}
       >
-         <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+         <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
          <Button onClick={onClick} className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg" variant="outline">
           <Icon className="w-8 h-8 text-primary" />
-          <span className="text-sm text-center">{title}</span>
+          <span className="text-sm text-center font-semibold" style={{ opacity: textOpacity }}>{title}</span>
         </Button>
       </div>
     );
@@ -583,7 +584,7 @@ export function NoteWiseAIPage() {
         </header>
       )}
       
-      <main className="flex-1 flex items-center justify-center">
+      <main className="flex-1 flex flex-col items-center justify-center">
         {renderContent()}
       </main>
 
