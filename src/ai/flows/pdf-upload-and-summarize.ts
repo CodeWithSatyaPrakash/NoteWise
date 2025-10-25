@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview This file contains the Genkit flow for uploading a PDF document and generating a concise summary of its content.
+ * @fileOverview This file contains the Genkit flow for generating a concise summary of text content.
  *
- * - pdfUploadAndSummarize - A function that handles the PDF upload and summarization process.
+ * - pdfUploadAndSummarize - A function that handles the summarization process.
  * - PdfUploadAndSummarizeInput - The input type for the pdfUploadAndSummarize function.
  * - PdfUploadAndSummarizeOutput - The return type for the pdfUploadAndSummarize function.
  */
@@ -11,10 +11,10 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const PdfUploadAndSummarizeInputSchema = z.object({
-  pdfDataUri: z
+  pdfText: z
     .string()
     .describe(
-      "A PDF document as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "The text content extracted from a PDF document."
     ),
 });
 export type PdfUploadAndSummarizeInput = z.infer<typeof PdfUploadAndSummarizeInputSchema>;
@@ -32,11 +32,11 @@ const prompt = ai.definePrompt({
   name: 'pdfUploadAndSummarizePrompt',
   input: {schema: PdfUploadAndSummarizeInputSchema},
   output: {schema: PdfUploadAndSummarizeOutputSchema},
-  prompt: `You are an expert summarizer of PDF documents.
+  prompt: `You are an expert summarizer of documents.
 
-You will receive a PDF document as a data URI. Your task is to generate a concise summary of the document, highlighting the main ideas and key points.
+You will receive text extracted from a document. Your task is to generate a concise summary of the document, highlighting the main ideas and key points.
 
-PDF Document: {{media url=pdfDataUri}}`,
+Document Text: {{{pdfText}}}`,
 });
 
 const pdfUploadAndSummarizeFlow = ai.defineFlow(

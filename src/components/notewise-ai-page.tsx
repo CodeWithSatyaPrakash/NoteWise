@@ -22,6 +22,7 @@ import {
   Sun,
   Moon,
   StopCircle,
+  Youtube,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -39,11 +40,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
+import { extractTextFromPdf } from '@/ai/flows/extract-text-from-pdf';
 import { generateMcqQuiz } from '@/ai/flows/generate-mcq-quiz';
 import { realTimeAIInteraction } from '@/ai/flows/real-time-ai-interaction';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { generateFlashcards, GenerateFlashcardsOutput } from '@/ai/flows/generate-flashcards';
 import { generateSmartNotes } from '@/ai/flows/generate-smart-notes';
+import { topicRelatedVideoSuggestions, TopicRelatedVideoSuggestionsOutput } from '@/ai/flows/topic-related-video-suggestions';
 
 type QuizItem = {
   question: string;
@@ -58,8 +61,9 @@ type QnaMessage = {
 };
 
 type Flashcard = GenerateFlashcardsOutput['flashcards'][0];
+type VideoSuggestion = TopicRelatedVideoSuggestionsOutput['videoSuggestions'][0];
 
-type FeatureDialog = 'summary' | 'quiz' | 'qna' | 'flashcards' | 'smart-notes' | null;
+type FeatureDialog = 'summary' | 'quiz' | 'qna' | 'flashcards' | 'smart-notes' | 'videos' | null;
 
 const isOverloadedError = (e: any) => {
     return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'));
@@ -68,7 +72,10 @@ const isOverloadedError = (e: any) => {
 export function NoteWiseAIPage() {
   const { setTheme, theme } = useTheme();
   const { toast } = useToast();
+  const [pdfText, setPdfText] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Processing PDF...');
   const [fileName, setFileName] = useState<string | null>(null);
@@ -98,6 +105,9 @@ export function NoteWiseAIPage() {
   const [smartNotes, setSmartNotes] = useState<string | null>(null);
   const [isSmartNotesLoading, setIsSmartNotesLoading] = useState(false);
   const [noteLength, setNoteLength] = useState<'short' | 'long'>('short');
+
+  const [videoSuggestions, setVideoSuggestions] = useState<VideoSuggestion[] | null>(null);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
 
 
   const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
@@ -135,9 +145,9 @@ export function NoteWiseAIPage() {
           return;
       }
       try {
-        setLoadingMessage('Generating summary...');
-        const result = await pdfUploadAndSummarize({ pdfDataUri });
-        setSummary(result.summary);
+        setLoadingMessage('Extracting text...');
+        const result = await extractTextFromPdf({ pdfDataUri });
+        setPdfText(result.pdfText);
       } catch (e) {
         if (isOverloadedError(e)) {
             toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
@@ -170,9 +180,28 @@ export function NoteWiseAIPage() {
       handleFileUpload(file);
     }
   };
+
+  const handleOpenSummary = async () => {
+    setActiveDialog('summary');
+    if (summary || !pdfText) return;
+    setIsSummaryLoading(true);
+    try {
+      const result = await pdfUploadAndSummarize({ pdfText });
+      setSummary(result.summary);
+    } catch (e) {
+      if (isOverloadedError(e)) {
+          toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
+      } else {
+          toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate summary.' });
+      }
+      console.error(e);
+    } finally {
+      setIsSummaryLoading(false);
+    }
+  };
   
   const handleGenerateQuiz = async () => {
-    if (!summary) return;
+    if (!pdfText) return;
     const questions = Number(numQuestions);
     if (questions < 1 || questions > 20) {
       toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter a number of questions between 1 and 20.' });
@@ -185,7 +214,7 @@ export function NoteWiseAIPage() {
     setQuizDuration(null);
     setReviewTopics([]);
     try {
-      const result = await generateMcqQuiz({ pdfText: summary, numberOfQuestions: questions });
+      const result = await generateMcqQuiz({ pdfText: pdfText, numberOfQuestions: questions });
       setQuiz(result.quiz);
     } catch (e) {
       if (isOverloadedError(e)) {
@@ -200,13 +229,13 @@ export function NoteWiseAIPage() {
   };
   
   const handleGenerateFlashcards = async () => {
-    if (!summary) return;
+    if (!pdfText) return;
     setIsFlashcardLoading(true);
     setFlashcards(null);
     setCurrentCardIndex(0);
     setIsCardFlipped(false);
     try {
-      const result = await generateFlashcards({ pdfText: summary });
+      const result = await generateFlashcards({ pdfText: pdfText });
       setFlashcards(result.flashcards);
     } catch (e) {
       if (isOverloadedError(e)) {
@@ -221,11 +250,11 @@ export function NoteWiseAIPage() {
   };
   
   const handleGenerateSmartNotes = async () => {
-    if (!summary) return;
+    if (!pdfText) return;
     setIsSmartNotesLoading(true);
     setSmartNotes(null);
     try {
-      const result = await generateSmartNotes({ pdfText: summary, noteLength });
+      const result = await generateSmartNotes({ pdfText: pdfText, noteLength });
       setSmartNotes(result.notes);
     } catch (e) {
       if (isOverloadedError(e)) {
@@ -238,10 +267,29 @@ export function NoteWiseAIPage() {
       setIsSmartNotesLoading(false);
     }
   };
+  
+  const handleGenerateVideoSuggestions = async () => {
+    if (!pdfText) return;
+    setIsVideoLoading(true);
+    setVideoSuggestions(null);
+    try {
+        const result = await topicRelatedVideoSuggestions({ pdfContent: pdfText });
+        setVideoSuggestions(result.videoSuggestions);
+    } catch (e) {
+        if (isOverloadedError(e)) {
+            toast({ variant: 'destructive', title: 'AI is Busy', description: 'The AI model is currently overloaded. Please try again in a moment.' });
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not generate video suggestions. Please try again.' });
+        }
+        console.error(e);
+    } finally {
+        setIsVideoLoading(false);
+    }
+  };
 
 
   const handleAskQuestion = async () => {
-    if (!summary || !qnaInputRef.current?.value.trim()) return;
+    if (!pdfText || !qnaInputRef.current?.value.trim()) return;
     const question = qnaInputRef.current.value;
     qnaInputRef.current.value = '';
     
@@ -250,7 +298,7 @@ export function NoteWiseAIPage() {
     setIsQnaLoading(true);
 
     try {
-      const result = await realTimeAIInteraction({ pdfContent: summary, userInput: question, history: qnaMessages });
+      const result = await realTimeAIInteraction({ pdfContent: pdfText, userInput: question, history: qnaMessages });
       setQnaMessages([...newMessages, { role: 'ai', content: result.aiResponse }]);
     } catch (e) {
       if (isOverloadedError(e)) {
@@ -301,6 +349,7 @@ export function NoteWiseAIPage() {
   };
   
   const handleReset = () => {
+    setPdfText(null);
     setSummary(null);
     setIsLoading(false);
     setFileName(null);
@@ -315,6 +364,7 @@ export function NoteWiseAIPage() {
     setActiveDialog(null);
     setFlashcards(null);
     setSmartNotes(null);
+    setVideoSuggestions(null);
     handleStopTts();
   };
   
@@ -402,16 +452,12 @@ export function NoteWiseAIPage() {
       <div className="relative w-[600px] h-[500px]">
         {/* SVG Lines */}
         <svg className="absolute w-full h-full" style={{ top: 0, left: 0 }}>
-            {/* Line to top node */}
-            <line x1="50%" y1="50%" x2="50%" y2="66" stroke="hsl(var(--border))" strokeWidth="2" />
-            {/* Line to top-left node */}
-            <line x1="50%" y1="50%" x2="calc(15%)" y2="calc(25%)" stroke="hsl(var(--border))" strokeWidth="2" />
-             {/* Line to top-right node */}
-            <line x1="50%" y1="50%" x2="calc(100% - 66px)" y2="calc(25%)" stroke="hsl(var(--border))" strokeWidth="2" />
-            {/* Line to bottom-left node */}
-            <line x1="50%" y1="50%" x2="calc(25%)" y2="calc(100% - 66px)" stroke="hsl(var(--border))" strokeWidth="2" />
-            {/* Line to bottom-right node */}
-            <line x1="50%" y1="50%" x2="calc(100% - 140px)" y2="calc(100% - 66px)" stroke="hsl(var(--border))" strokeWidth="2" />
+            <line x1="50%" y1="50%" x2="calc(50% - 110px)" y2="calc(50% - 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
+            <line x1="50%" y1="50%" x2="calc(50% + 110px)" y2="calc(50% - 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
+            <line x1="50%" y1="50%" x2="50%" y2="calc(50% - 180px)" stroke="hsl(var(--border))" strokeWidth="2" />
+            <line x1="50%" y1="50%" x2="calc(50% - 110px)" y2="calc(50% + 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
+            <line x1="50%" y1="50%" x2="calc(50% + 110px)" y2="calc(50% + 110px)" stroke="hsl(var(--border))" strokeWidth="2" />
+            <line x1="50%" y1="50%" x2="50%" y2="calc(50% + 180px)" stroke="hsl(var(--border))" strokeWidth="2" />
         </svg>
         
         {/* Central Hub */}
@@ -424,20 +470,23 @@ export function NoteWiseAIPage() {
         </div>
         
         {/* Feature Nodes */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2">
-            <FeatureNode icon={Sparkles} title="AI Summary" onClick={() => setActiveDialog('summary')} />
+        <div className="absolute top-[calc(50%-180px)] left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <FeatureNode icon={Sparkles} title="AI Summary" onClick={handleOpenSummary} />
         </div>
-        <div className="absolute top-1/4 left-[5%]">
+        <div className="absolute top-[calc(50%-110px)] left-[calc(50%-110px)] -translate-x-1/2 -translate-y-1/2">
             <FeatureNode icon={HelpCircle} title="Generate Quiz" onClick={() => setActiveDialog('quiz')} />
         </div>
-        <div className="absolute top-1/4 right-0">
+        <div className="absolute top-[calc(50%-110px)] right-[calc(50%-242px)] -translate-x-1/2 -translate-y-1/2">
             <FeatureNode icon={PenSquare} title="Smart Notes" onClick={() => setActiveDialog('smart-notes')} />
         </div>
-        <div className="absolute bottom-0 left-1/4 -translate-x-1/2">
+        <div className="absolute bottom-[calc(50%-242px)] left-[calc(50%-110px)] -translate-x-1/2 -translate-y-1/2">
             <FeatureNode icon={MessageSquare} title="Talk to PDF" onClick={() => setActiveDialog('qna')} />
         </div>
-        <div className="absolute bottom-0 right-0">
+        <div className="absolute bottom-[calc(50%-242px)] right-[calc(50%-242px)] -translate-x-1/2 -translate-y-1/2">
             <FeatureNode icon={Copy} title="Flashcards" onClick={() => setActiveDialog('flashcards')} />
+        </div>
+        <div className="absolute bottom-[calc(50%-180px-132px)] left-1/2 -translate-x-1/2 -translate-y-1/2">
+             <FeatureNode icon={Youtube} title="Video Suggestions" onClick={() => setActiveDialog('videos')} />
         </div>
 
       </div>
@@ -457,7 +506,7 @@ export function NoteWiseAIPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className={cn("sticky top-0 z-50 flex items-center justify-between h-16 px-4", summary && "border-b bg-background/80 backdrop-blur-sm")}>
+      <header className={cn("sticky top-0 z-50 flex items-center justify-between h-16 px-4", pdfText && "border-b bg-background/80 backdrop-blur-sm")}>
         <div className="flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-primary" />
           <h1 className="text-xl font-bold">NoteWise AI</h1>
@@ -472,7 +521,7 @@ export function NoteWiseAIPage() {
               <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
-            {summary && (
+            {pdfText && (
               <Button variant="outline" size="sm" onClick={handleReset}>
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Start Over
@@ -482,7 +531,7 @@ export function NoteWiseAIPage() {
       </header>
       
       <main className="flex-1 flex items-center justify-center">
-        {!summary ? <Uploader /> : <FeatureHub />}
+        {!pdfText ? <Uploader /> : <FeatureHub />}
       </main>
 
       <footer className="text-center p-4 text-sm text-muted-foreground">
@@ -497,7 +546,8 @@ export function NoteWiseAIPage() {
             <DialogDescription>Key points from your document.</DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-64 pr-4">
-            <p className="text-sm">{summary}</p>
+             {isSummaryLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+            {summary && <p className="text-sm">{summary}</p>}
           </ScrollArea>
           <DialogFooter className="gap-2 sm:justify-start">
              {isTtsPlaying ? (
@@ -506,12 +556,12 @@ export function NoteWiseAIPage() {
                     Stop
                  </Button>
              ) : (
-                <Button variant="outline" size="sm" onClick={() => summary && handleTextToSpeech(summary)} disabled={isTtsLoading}>
+                <Button variant="outline" size="sm" onClick={() => summary && handleTextToSpeech(summary)} disabled={isTtsLoading || isSummaryLoading || !summary}>
                     {isTtsLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Volume2 className="w-4 h-4 mr-2" />}
                     Listen
                 </Button>
              )}
-             <Button variant="ghost" size="sm" onClick={() => summary && navigator.clipboard.writeText(summary)}>
+             <Button variant="ghost" size="sm" onClick={() => summary && navigator.clipboard.writeText(summary)} disabled={!summary}>
                 <Clipboard className="w-4 h-4 mr-2" /> Copy
              </Button>
           </DialogFooter>
@@ -777,6 +827,58 @@ export function NoteWiseAIPage() {
             </>
           )}
         </DialogContent>
+      </Dialog>
+
+      {/* Dialog for Video Suggestions */}
+      <Dialog open={activeDialog === 'videos'} onOpenChange={(v) => !v && setActiveDialog(null)}>
+          <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2"><Youtube className="text-primary"/> Video Suggestions</DialogTitle>
+                  <DialogDescription>Related videos to help you understand the content.</DialogDescription>
+              </DialogHeader>
+
+              {(!videoSuggestions && !isVideoLoading) && (
+                 <div className="flex flex-col items-center gap-4 py-8">
+                      <p className="text-center text-muted-foreground">Find relevant videos based on the document.</p>
+                      <Button onClick={handleGenerateVideoSuggestions} disabled={isVideoLoading}>
+                          {isVideoLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                          Suggest Videos
+                      </Button>
+                  </div>
+              )}
+              
+              {isVideoLoading && <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+
+              {videoSuggestions && (
+                  <ScrollArea className="h-96 pr-4">
+                      <div className="space-y-4">
+                          {videoSuggestions.map((video, i) => (
+                              <Card key={i}>
+                                  <CardContent className="p-4 flex gap-4">
+                                      <a href={`https://www.youtube.com/watch?v=${video.videoId}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                                          <img src={`https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`} alt={video.title} className="w-32 h-auto rounded" />
+                                      </a>
+                                      <div>
+                                          <a href={`https://www.youtube.com/watch?v=${video.videoId}`} target="_blank" rel="noopener noreferrer">
+                                            <p className="font-semibold hover:underline">{video.title}</p>
+                                          </a>
+                                          <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{video.description}</p>
+                                      </div>
+                                  </CardContent>
+                              </Card>
+                          ))}
+                      </div>
+                  </ScrollArea>
+              )}
+              {videoSuggestions && (
+                 <DialogFooter className="mt-4">
+                     <Button onClick={handleGenerateVideoSuggestions} variant="secondary">
+                         <RefreshCw className="w-4 h-4 mr-2" />
+                         Regenerate
+                     </Button>
+                 </DialogFooter>
+               )}
+          </DialogContent>
       </Dialog>
       
       <audio ref={audioRef} className="hidden" />
