@@ -70,7 +70,7 @@ function MagnetizeButton({
         <Button
             size="lg"
             className={cn(
-                "relative touch-none overflow-hidden transition-all duration-300",
+                "relative touch-none overflow-hidden transition-all duration-300 bg-gray-800 hover:bg-gray-700 text-white",
                 className
             )}
             onMouseEnter={handleInteractionStart}
