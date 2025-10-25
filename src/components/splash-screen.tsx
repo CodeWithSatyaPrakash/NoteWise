@@ -2,7 +2,7 @@
 import React from "react";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { ArrowRight } from "lucide-react";
-import { MagnetizeButton } from "@/components/ui/magnetize-button";
+import { Button } from "@/components/ui/button";
 
 export function SplashScreen({ onGetStarted }: { onGetStarted: () => void }) {
   return (
@@ -44,13 +44,13 @@ export function SplashScreen({ onGetStarted }: { onGetStarted: () => void }) {
           <div className="absolute inset-0 w-full h-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
         </div>
         <div className="mt-8">
-            <MagnetizeButton
+            <Button
               className="bg-white/10 hover:bg-white/20 text-white border-white/20"
               onClick={onGetStarted}
             >
               Get Started
               <ArrowRight className="ml-2" />
-            </MagnetizeButton>
+            </Button>
         </div>
       </div>
     </div>
