@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 
 export function SplashScreen({ onGetStarted }: { onGetStarted: () => void }) {
   return (
-    <div className="h-screen relative w-full bg-background flex flex-col items-center justify-center overflow-hidden">
+    <div className="h-screen relative w-full bg-black flex flex-col items-center justify-center overflow-hidden">
       <div className="w-full absolute inset-0 h-screen">
         <SparklesCore
           id="tsparticlesfullpage"
@@ -20,7 +20,7 @@ export function SplashScreen({ onGetStarted }: { onGetStarted: () => void }) {
         />
       </div>
       <div className="flex flex-col items-center justify-center gap-4 relative z-20">
-        <h1 className="md:text-7xl text-5xl lg:text-8xl font-bold text-center text-foreground relative z-20">
+        <h1 className="md:text-7xl text-5xl lg:text-8xl font-bold text-center text-white relative z-20">
           NoteWise AI
         </h1>
         <div className="w-[40rem] h-40 relative">
@@ -41,9 +41,9 @@ export function SplashScreen({ onGetStarted }: { onGetStarted: () => void }) {
           />
 
           {/* Radial Gradient to prevent sharp edges */}
-          <div className="absolute inset-0 w-full h-full bg-background [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
+          <div className="absolute inset-0 w-full h-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
         </div>
-        <p className="text-muted-foreground text-center text-lg md:text-xl max-w-2xl mt-[-2rem]">
+        <p className="text-neutral-300 text-center text-lg md:text-xl max-w-2xl mt-[-2rem]">
           Transform your PDFs into summaries, quizzes, and interactive study materials. Let AI accelerate your learning journey.
         </p>
         <Button size="lg" className="mt-8" onClick={onGetStarted}>
