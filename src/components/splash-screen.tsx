@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { SparklesCore } from "@/components/ui/sparkles";
-import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { MagnetizeButton } from "@/components/ui/magnetize-button";
 
