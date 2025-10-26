@@ -454,10 +454,11 @@ setIsQnaLoading(true);
       const updateRadius = () => {
         if (containerRef.current) {
           const { width, height } = containerRef.current.getBoundingClientRect();
-          // Consider the node size (128px) and some padding (e.g., 64px total)
-          const nodeTotalHeight = 128 + 48; // button height + text area approx
-          const maxRadiusY = (height - nodeTotalHeight) / 2;
-          const maxRadiusX = (width - 128) / 2;
+          // Adjusted logic to better account for node size and padding
+          const nodeTotalHeight = 128 + 48; // approx button height + text area
+          const padding = 64; // Extra padding
+          const maxRadiusY = (height - nodeTotalHeight - padding) / 2;
+          const maxRadiusX = (width - 128 - padding) / 2;
           setRadius(Math.max(120, Math.min(maxRadiusX, maxRadiusY)));
         }
       };
@@ -592,10 +593,8 @@ setIsQnaLoading(true);
         </header>
       )}
       
-      <main className="flex-1 flex flex-col">
-        <div className="flex-1 flex items-center justify-center p-4">
-            {renderContent()}
-        </div>
+      <main className="flex-1 flex items-center justify-center p-4">
+        {renderContent()}
       </main>
 
       {showUploader && !pdfText && (
