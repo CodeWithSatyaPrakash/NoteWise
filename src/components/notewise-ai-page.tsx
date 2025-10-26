@@ -474,7 +474,7 @@ setIsQnaLoading(true);
                 
                 {features.map((feature, index) => {
                     const angle = (index / features.length) * 2 * Math.PI;
-                    const radius = 250;
+                    const radius = 200; // Reduced radius
                     const x = Math.cos(angle) * radius;
                     const y = Math.sin(angle) * radius;
                     
