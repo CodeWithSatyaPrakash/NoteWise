@@ -454,10 +454,10 @@ setIsQnaLoading(true);
       const updateRadius = () => {
         if (containerRef.current) {
           const { width, height } = containerRef.current.getBoundingClientRect();
-          const nodeTotalHeight = 128 + 48;
-          const padding = 64; 
+          const nodeTotalHeight = 128 + 48; // approx button height + text + spacing
+          const padding = 64; // some padding from the edges
           const maxRadiusY = (height - nodeTotalHeight - padding) / 2;
-          const maxRadiusX = (width - 128 - padding) / 2;
+          const maxRadiusX = (width - 128 - padding) / 2; // 128 is button width
           setRadius(Math.max(120, Math.min(maxRadiusX, maxRadiusY)));
         }
       };
@@ -554,53 +554,58 @@ setIsQnaLoading(true);
     );
   }
 
-  const renderContent = () => {
-    if (!showUploader && !pdfText) {
-      return <SplashScreen onGetStarted={() => setShowUploader(true)} />;
-    }
-    if (!pdfText) {
-      return <Uploader />;
-    }
-    return <FeatureHub />;
-  };
-
   return (
-    <div className="flex flex-col min-h-screen">
-      {(showUploader || pdfText) && (
-        <header className={cn("sticky top-0 z-50 flex items-center justify-between h-16 px-4", (showUploader || pdfText) && "border-b bg-background/80 backdrop-blur-sm")}>
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold">NoteWise AI</h1>
-          </div>
-          <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              >
-                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                <span className="sr-only">Toggle theme</span>
-              </Button>
-              {pdfText && (
-                <Button variant="outline" size="sm" onClick={handleReset}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Start Over
-                </Button>
-              )}
-          </div>
-        </header>
-      )}
-      
-      <main className="flex-1 flex flex-col items-center justify-center">
-        {renderContent()}
-      </main>
+    <div className="relative min-h-screen w-full">
+        {!showUploader && !pdfText && (
+          <SplashScreen onGetStarted={() => setShowUploader(true)} />
+        )}
+        
+        {showUploader && !pdfText && (
+            <div className="flex flex-col min-h-screen">
+                <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 border-b bg-background/80 backdrop-blur-sm">
+                    <div className="flex items-center gap-2">
+                        <BookOpen className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">NoteWise AI</h1>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+                        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                        <span className="sr-only">Toggle theme</span>
+                    </Button>
+                </header>
+                <main className="flex-1 flex flex-col items-center justify-center">
+                    <Uploader />
+                </main>
+                <footer className="text-center p-4 text-sm text-muted-foreground">
+                    Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
+                </footer>
+            </div>
+        )}
 
-      {showUploader && !pdfText && (
-        <footer className="text-center p-4 text-sm text-muted-foreground">
-          Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
-        </footer>
-      )}
+        {pdfText && (
+            <>
+                <div className="absolute inset-0">
+                    <FeatureHub />
+                </div>
+                <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 bg-transparent">
+                    <div className="flex items-center gap-2">
+                        <BookOpen className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">NoteWise AI</h1>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+                            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                            <span className="sr-only">Toggle theme</span>
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleReset}>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Start Over
+                        </Button>
+                    </div>
+                </header>
+            </>
+        )}
       
       {/* Dialog for AI Summary */}
       <Dialog open={activeDialog === 'summary'} onOpenChange={(v) => { if (!v) { setActiveDialog(null); handleStopTts(); } }}>
