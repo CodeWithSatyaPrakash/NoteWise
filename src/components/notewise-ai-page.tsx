@@ -417,7 +417,7 @@ setIsQnaLoading(true);
          <Button
             ref={fref}
             onClick={onClick}
-            className="group relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out hover:scale-110"
+            className="group relative rounded-full w-24 h-24 md:w-32 md:h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out hover:scale-110"
             variant="outline"
             style={{
               boxShadow: `0 0 15px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)`,
@@ -427,7 +427,7 @@ setIsQnaLoading(true);
             <div className="absolute top-0 left-1/2 w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_4s_ease-in-out_infinite]" />
           </div>
           <Icon className="w-8 h-8 text-primary" />
-          <span className="text-sm text-center font-semibold text-foreground">
+          <span className="text-xs md:text-sm text-center font-semibold text-foreground">
             {title}
           </span>
         </Button>
@@ -438,90 +438,87 @@ setIsQnaLoading(true);
   const FeatureHub = () => {
     const features = [
       { icon: Sparkles, title: "AI Summary", onClick: handleOpenSummary },
-      { icon: HelpCircle, title: "Generate Quiz", onClick: () => setActiveDialog('quiz') },
-      { icon: PenSquare, title: "Smart Notes", onClick: () => setActiveDialog('smart-notes') },
       { icon: MessageSquare, title: "Talk to PDF", onClick: () => setActiveDialog('qna') },
+      { icon: PenSquare, title: "Smart Notes", onClick: () => setActiveDialog('smart-notes') },
+      { icon: HelpCircle, title: "Generate Quiz", onClick: () => setActiveDialog('quiz') },
       { icon: Copy, title: "Flashcards", onClick: () => setActiveDialog('flashcards') },
     ];
     
+    const leftFeatures = features.slice(0, 3);
+    const rightFeatures = features.slice(3);
+
     const containerRef = useRef<HTMLDivElement>(null);
     const centerRef = useRef<HTMLDivElement>(null);
+    
     const featureRefs = useRef(features.map(() => createRef<HTMLButtonElement>()));
-
-    const [radius, setRadius] = useState(200);
-
-    useEffect(() => {
-      const updateRadius = () => {
-        if (containerRef.current) {
-          const { width, height } = containerRef.current.getBoundingClientRect();
-          const nodeTotalHeight = 128 + 48; // approx button height + text + spacing
-          const padding = 64; // some padding from the edges
-          const maxRadiusY = (height - nodeTotalHeight - padding) / 2;
-          const maxRadiusX = (width - 128 - padding) / 2; // 128 is button width
-          setRadius(Math.max(120, Math.min(maxRadiusX, maxRadiusY)));
-        }
-      };
-
-      updateRadius();
-      window.addEventListener('resize', updateRadius);
-      return () => window.removeEventListener('resize', updateRadius);
-    }, []);
+    const leftFeatureRefs = featureRefs.current.slice(0, 3);
+    const rightFeatureRefs = featureRefs.current.slice(3);
 
     return (
-        <div className="relative flex h-full w-full items-center justify-center overflow-hidden" ref={containerRef} >
+        <div ref={containerRef} className="relative flex h-full w-full items-center justify-center overflow-hidden">
             <div className="absolute inset-0 -z-10 h-full w-full bg-background animated-grid"></div>
 
-            <div className="flex items-center justify-center">
-
-                {/* Central Hub */}
-                <div ref={centerRef} className="z-10 flex flex-col items-center text-center">
-                  <div className="mx-auto bg-primary/20 p-4 rounded-full w-fit border-8 border-primary/30 animate-pulse"
-                    style={{
-                        animationDuration: '2s',
-                        boxShadow: `0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.4)`
-                    }}>
-                      <Lightbulb className="w-10 h-10 text-primary" />
-                  </div>
-                  <h2 
-                    className="text-2xl font-bold mt-4" 
-                    style={{ animation: 'float-glow 4s ease-in-out infinite' }}
-                  >
-                    Doc Received!
-                  </h2>
-                  <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
+            <div className="relative flex w-full max-w-4xl items-center justify-between px-4 md:px-8">
+                {/* Left Column */}
+                <div className="flex flex-col items-center justify-center gap-12 md:gap-20">
+                    {leftFeatures.map((feature, index) => (
+                        <FeatureNode 
+                            key={feature.title}
+                            fref={leftFeatureRefs[index]}
+                            icon={feature.icon}
+                            title={feature.title}
+                            onClick={feature.onClick}
+                        />
+                    ))}
                 </div>
-                
-                {features.map((feature, index) => {
-                    const angle = (index / features.length) * 2 * Math.PI - Math.PI / 2;
-                    const x = Math.cos(angle) * radius;
-                    const y = Math.sin(angle) * radius;
-                    
-                    return (
-                        <div key={feature.title} className="absolute" style={{ transform: `translate(${x}px, ${y}px)` }}>
-                            <FeatureNode 
-                                fref={featureRefs.current[index]}
-                                icon={feature.icon}
-                                title={feature.title}
-                                onClick={feature.onClick}
-                            />
-                        </div>
-                    );
-                })}
 
-                {features.map((_, index) => (
+                {/* Center Hub */}
+                <div ref={centerRef} className="z-10 flex flex-col items-center text-center">
+                    <div className="mx-auto bg-primary/20 p-4 rounded-full w-fit border-8 border-primary/30 animate-pulse"
+                        style={{
+                            animationDuration: '2s',
+                            boxShadow: `0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.4)`
+                        }}>
+                        <Lightbulb className="w-10 h-10 text-primary" />
+                    </div>
+                    <h2 
+                        className="text-2xl font-bold mt-4" 
+                        style={{ animation: 'float-glow 4s ease-in-out infinite' }}
+                    >
+                        Doc Received!
+                    </h2>
+                    <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
+                </div>
+
+                {/* Right Column */}
+                <div className="flex flex-col items-center justify-center gap-12 md:gap-20">
+                    {rightFeatures.map((feature, index) => (
+                        <FeatureNode 
+                            key={feature.title}
+                            fref={rightFeatureRefs[index]}
+                            icon={feature.icon}
+                            title={feature.title}
+                            onClick={feature.onClick}
+                        />
+                    ))}
+                </div>
+
+                {/* Beams */}
+                {featureRefs.current.map((ref, index) => (
                     <AnimatedBeam
                         key={index}
                         containerRef={containerRef}
                         fromRef={centerRef}
-                        toRef={featureRefs.current[index]}
+                        toRef={ref}
                         duration={3}
                         delay={index * 0.2}
+                        curvature={index < 3 ? 40 : -40} // Curve left nodes one way, right nodes the other
                     />
                 ))}
             </div>
         </div>
     );
-  };
+};
 
 
   if (isLoading) {
@@ -555,57 +552,64 @@ setIsQnaLoading(true);
   }
 
   return (
-    <div className="relative min-h-screen w-full">
+    <div className="relative min-h-screen w-full flex flex-col">
+      {!pdfText && (
+        <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 border-b bg-background/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-primary" />
+            <h1 className="text-xl font-bold">NoteWise AI</h1>
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        </header>
+      )}
+
+      {pdfText && (
+        <header className="absolute top-0 z-50 flex items-center justify-between h-16 px-4 w-full bg-transparent">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-primary" />
+            <h1 className="text-xl font-bold">NoteWise AI</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleReset}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Start Over
+            </Button>
+          </div>
+        </header>
+      )}
+      
+      <main className="flex-1 flex flex-col">
         {!showUploader && !pdfText && (
           <SplashScreen onGetStarted={() => setShowUploader(true)} />
         )}
         
         {showUploader && !pdfText && (
-            <div className="flex flex-col min-h-screen">
-                <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 border-b bg-background/80 backdrop-blur-sm">
-                    <div className="flex items-center gap-2">
-                        <BookOpen className="w-6 h-6 text-primary" />
-                        <h1 className="text-xl font-bold">NoteWise AI</h1>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-                        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                        <span className="sr-only">Toggle theme</span>
-                    </Button>
-                </header>
-                <main className="flex-1 flex flex-col items-center justify-center">
-                    <Uploader />
-                </main>
-                <footer className="text-center p-4 text-sm text-muted-foreground">
-                    Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
-                </footer>
-            </div>
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <Uploader />
+          </div>
         )}
-
+        
         {pdfText && (
-            <>
-                <div className="absolute inset-0">
-                    <FeatureHub />
-                </div>
-                <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 bg-transparent">
-                    <div className="flex items-center gap-2">
-                        <BookOpen className="w-6 h-6 text-primary" />
-                        <h1 className="text-xl font-bold">NoteWise AI</h1>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-                            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                            <span className="sr-only">Toggle theme</span>
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={handleReset}>
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                            Start Over
-                        </Button>
-                    </div>
-                </header>
-            </>
+          <div className="flex-1">
+             <FeatureHub />
+          </div>
         )}
+      </main>
+
+      {!pdfText && showUploader && (
+        <footer className="text-center p-4 text-sm text-muted-foreground">
+            Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
+        </footer>
+      )}
       
       {/* Dialog for AI Summary */}
       <Dialog open={activeDialog === 'summary'} onOpenChange={(v) => { if (!v) { setActiveDialog(null); handleStopTts(); } }}>
