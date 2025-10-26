@@ -454,10 +454,11 @@ setIsQnaLoading(true);
       const updateRadius = () => {
         if (containerRef.current) {
           const { width, height } = containerRef.current.getBoundingClientRect();
-          const smallerDim = Math.min(width, height);
-          // Set radius to be a fraction of the smaller dimension, with a min and max
-          const calculatedRadius = Math.max(120, smallerDim * 0.3);
-          setRadius(calculatedRadius);
+          // Consider the node size (128px) and some padding (e.g., 64px total)
+          const nodeTotalHeight = 128 + 48; // button height + text area approx
+          const maxRadiusY = (height - nodeTotalHeight) / 2;
+          const maxRadiusX = (width - 128) / 2;
+          setRadius(Math.max(120, Math.min(maxRadiusX, maxRadiusY)));
         }
       };
 
@@ -491,7 +492,7 @@ setIsQnaLoading(true);
                 </div>
                 
                 {features.map((feature, index) => {
-                    const angle = (index / features.length) * 2 * Math.PI;
+                    const angle = (index / features.length) * 2 * Math.PI - Math.PI / 2; // Start from top
                     const x = Math.cos(angle) * radius;
                     const y = Math.sin(angle) * radius;
                     
