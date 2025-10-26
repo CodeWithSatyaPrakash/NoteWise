@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect, FormEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect, FormEvent, createRef } from 'react';
 import {
   UploadCloud,
   FileText,
@@ -38,6 +38,7 @@ import { useTheme } from 'next-themes';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import VaporizeTextCycle, { Tag } from '@/components/ui/vapour-text-effect';
 import { SplashScreen } from '@/components/splash-screen';
+import { AnimatedBeam } from '@/components/ui/animated-beam';
 
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
@@ -107,9 +108,6 @@ export function NoteWiseAIPage() {
   const [noteLength, setNoteLength] = useState<'short' | 'long'>('short');
 
   const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
-  
-  const [rotationAngle, setRotationAngle] = useState<number>(0);
-  const [autoRotate, setAutoRotate] = useState<boolean>(true);
 
   useEffect(() => {
     if (quiz && quizScore === null) {
@@ -127,25 +125,6 @@ export function NoteWiseAIPage() {
       };
     }
   }, []);
-
-  useEffect(() => {
-    let rotationTimer: NodeJS.Timeout;
-
-    if (autoRotate && pdfText) {
-      rotationTimer = setInterval(() => {
-        setRotationAngle((prev) => {
-          const newAngle = (prev + 0.1) % 360;
-          return Number(newAngle.toFixed(3));
-        });
-      }, 50);
-    }
-
-    return () => {
-      if (rotationTimer) {
-        clearInterval(rotationTimer);
-      }
-    };
-  }, [autoRotate, pdfText]);
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -430,37 +409,15 @@ setIsQnaLoading(true);
     </div>
   );
   
-  const FeatureNode = ({ icon, title, onClick, nodeIndex, totalNodes }: { icon: React.ElementType, title: string, onClick: () => void, nodeIndex: number, totalNodes: number }) => {
+  const FeatureNode = ({ icon, title, onClick, fref }: { icon: React.ElementType, title: string, onClick: () => void, fref: React.RefObject<HTMLButtonElement> }) => {
     const Icon = icon;
     
-    const angle = ((nodeIndex / totalNodes) * 360 + rotationAngle) % 360;
-    const radius = 200; // Orbit radius
-    const radian = (angle * Math.PI) / 180;
-
-    const x = radius * Math.cos(radian);
-    const y = radius * Math.sin(radian);
-    const zIndex = Math.round(100 + 50 * Math.sin(radian));
-    const scale = 0.8 + 0.2 * ((1 + Math.sin(radian)) / 2);
-    
-    const style = {
-      transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`,
-      zIndex: zIndex,
-      opacity: 0.6 + 0.4 * ((1 + Math.sin(radian)) / 2),
-    };
-    
-    const stopRotation = () => setAutoRotate(false);
-    const startRotation = () => setAutoRotate(true);
-
     return (
-      <div 
-        className="group absolute top-1/2 left-1/2 transition-all duration-300 ease-in-out"
-        style={style}
-        onMouseEnter={stopRotation}
-        onMouseLeave={startRotation}
-      >
+      <div className="z-10 flex flex-col items-center">
          <Button
+            ref={fref}
             onClick={onClick}
-            className="relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out group-hover:scale-110"
+            className="group relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out hover:scale-110"
             variant="outline"
             style={{
               boxShadow: `0 0 15px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)`,
@@ -479,21 +436,26 @@ setIsQnaLoading(true);
   };
   
   const FeatureHub = () => {
-      const features = [
-        { icon: Sparkles, title: "AI Summary", onClick: handleOpenSummary },
-        { icon: HelpCircle, title: "Generate Quiz", onClick: () => setActiveDialog('quiz') },
-        { icon: PenSquare, title: "Smart Notes", onClick: () => setActiveDialog('smart-notes') },
-        { icon: MessageSquare, title: "Talk to PDF", onClick: () => setActiveDialog('qna') },
-        { icon: Copy, title: "Flashcards", onClick: () => setActiveDialog('flashcards') },
-      ];
+    const features = [
+      { icon: Sparkles, title: "AI Summary", onClick: handleOpenSummary },
+      { icon: HelpCircle, title: "Generate Quiz", onClick: () => setActiveDialog('quiz') },
+      { icon: PenSquare, title: "Smart Notes", onClick: () => setActiveDialog('smart-notes') },
+      { icon: MessageSquare, title: "Talk to PDF", onClick: () => setActiveDialog('qna') },
+      { icon: Copy, title: "Flashcards", onClick: () => setActiveDialog('flashcards') },
+    ];
+    
+    const containerRef = useRef<HTMLDivElement>(null);
+    const centerRef = useRef<HTMLDivElement>(null);
+    const featureRefs = useRef(features.map(() => createRef<HTMLButtonElement>()));
 
-      return (
-        <div className="relative w-full h-full flex items-center justify-center overflow-hidden" style={{ perspective: "1000px" }}>
+    return (
+        <div className="relative flex h-full w-full items-center justify-center overflow-hidden" ref={containerRef} >
             <div className="absolute inset-0 -z-10 h-full w-full bg-background animated-grid"></div>
 
-            <div className="relative flex items-center justify-center" style={{ width: '600px', height: '600px' }}>
+            <div className="flex items-center justify-center">
+
                 {/* Central Hub */}
-                <div className="absolute z-20 flex flex-col items-center text-center">
+                <div ref={centerRef} className="z-10 flex flex-col items-center text-center">
                   <div className="mx-auto bg-primary/20 p-4 rounded-full w-fit border-8 border-primary/30 animate-pulse"
                     style={{
                         animationDuration: '2s',
@@ -510,26 +472,37 @@ setIsQnaLoading(true);
                   <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
                 </div>
                 
-                {/* Orbital Rings */}
-                <div className="absolute w-[400px] h-[400px] rounded-full border border-border/20"></div>
-                <div className="absolute w-[500px] h-[500px] rounded-full border border-border/10 opacity-70"></div>
-                <div className="absolute w-[600px] h-[600px] rounded-full border border-border/5 opacity-50"></div>
+                {features.map((feature, index) => {
+                    const angle = (index / features.length) * 2 * Math.PI;
+                    const radius = 250;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    
+                    return (
+                        <div key={feature.title} className="absolute" style={{ transform: `translate(${x}px, ${y}px)` }}>
+                            <FeatureNode 
+                                fref={featureRefs.current[index]}
+                                icon={feature.icon}
+                                title={feature.title}
+                                onClick={feature.onClick}
+                            />
+                        </div>
+                    );
+                })}
 
-
-                {/* Orbiting Feature Nodes */}
-                {features.map((feature, index) => (
-                    <FeatureNode 
-                        key={feature.title}
-                        icon={feature.icon}
-                        title={feature.title}
-                        onClick={feature.onClick}
-                        nodeIndex={index}
-                        totalNodes={features.length}
+                {features.map((_, index) => (
+                    <AnimatedBeam
+                        key={index}
+                        containerRef={containerRef}
+                        fromRef={centerRef}
+                        toRef={featureRefs.current[index]}
+                        duration={3}
+                        delay={index * 0.2}
                     />
                 ))}
             </div>
         </div>
-      );
+    );
   };
 
 
