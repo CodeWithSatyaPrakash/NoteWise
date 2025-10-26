@@ -448,6 +448,24 @@ setIsQnaLoading(true);
     const centerRef = useRef<HTMLDivElement>(null);
     const featureRefs = useRef(features.map(() => createRef<HTMLButtonElement>()));
 
+    const [radius, setRadius] = useState(200);
+
+    useEffect(() => {
+      const updateRadius = () => {
+        if (containerRef.current) {
+          const { width, height } = containerRef.current.getBoundingClientRect();
+          const smallerDim = Math.min(width, height);
+          // Set radius to be a fraction of the smaller dimension, with a min and max
+          const calculatedRadius = Math.max(120, smallerDim * 0.3);
+          setRadius(calculatedRadius);
+        }
+      };
+
+      updateRadius();
+      window.addEventListener('resize', updateRadius);
+      return () => window.removeEventListener('resize', updateRadius);
+    }, []);
+
     return (
         <div className="relative flex h-full w-full items-center justify-center overflow-hidden" ref={containerRef} >
             <div className="absolute inset-0 -z-10 h-full w-full bg-background animated-grid"></div>
@@ -474,7 +492,6 @@ setIsQnaLoading(true);
                 
                 {features.map((feature, index) => {
                     const angle = (index / features.length) * 2 * Math.PI;
-                    const radius = 200; // Reduced radius
                     const x = Math.cos(angle) * radius;
                     const y = Math.sin(angle) * radius;
                     
@@ -575,7 +592,7 @@ setIsQnaLoading(true);
       )}
       
       <main className="flex-1 flex flex-col">
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center p-4">
             {renderContent()}
         </div>
       </main>
