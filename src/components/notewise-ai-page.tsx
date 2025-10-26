@@ -454,9 +454,8 @@ setIsQnaLoading(true);
       const updateRadius = () => {
         if (containerRef.current) {
           const { width, height } = containerRef.current.getBoundingClientRect();
-          // Adjusted logic to better account for node size and padding
-          const nodeTotalHeight = 128 + 48; // approx button height + text area
-          const padding = 64; // Extra padding
+          const nodeTotalHeight = 128 + 48;
+          const padding = 64; 
           const maxRadiusY = (height - nodeTotalHeight - padding) / 2;
           const maxRadiusX = (width - 128 - padding) / 2;
           setRadius(Math.max(120, Math.min(maxRadiusX, maxRadiusY)));
@@ -493,7 +492,7 @@ setIsQnaLoading(true);
                 </div>
                 
                 {features.map((feature, index) => {
-                    const angle = (index / features.length) * 2 * Math.PI - Math.PI / 2; // Start from top
+                    const angle = (index / features.length) * 2 * Math.PI - Math.PI / 2;
                     const x = Math.cos(angle) * radius;
                     const y = Math.sin(angle) * radius;
                     
@@ -593,7 +592,7 @@ setIsQnaLoading(true);
         </header>
       )}
       
-      <main className="flex-1 flex items-center justify-center p-4">
+      <main className="flex-1 flex flex-col items-center justify-center">
         {renderContent()}
       </main>
 
@@ -875,8 +874,7 @@ setIsQnaLoading(true);
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="long" id="long-regen" />
-                            <Label htmlFor="long-regen">Long</Label>
-                          </div>
+                            <Label htmlFor="long-regen">Long</Label>                          </div>
                       </RadioGroup>
                       <div className="flex gap-2 sm:ml-auto">
                         <Button variant="ghost" size="sm" onClick={() => smartNotes && navigator.clipboard.writeText(smartNotes)}>
