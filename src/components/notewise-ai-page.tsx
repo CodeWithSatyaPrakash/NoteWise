@@ -409,32 +409,6 @@ setIsQnaLoading(true);
     </div>
   );
   
-  const FeatureNode = ({ icon, title, onClick, fref }: { icon: React.ElementType, title: string, onClick: () => void, fref: React.RefObject<HTMLButtonElement> }) => {
-    const Icon = icon;
-    
-    return (
-      <div className="z-10 flex flex-col items-center">
-         <Button
-            ref={fref}
-            onClick={onClick}
-            className="group relative rounded-full w-24 h-24 md:w-32 md:h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out hover:scale-110"
-            variant="outline"
-            style={{
-              boxShadow: `0 0 15px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)`,
-            }}
-          >
-          <div className="absolute inset-0 rounded-full overflow-hidden">
-            <div className="absolute top-0 left-1/2 w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_4s_ease-in-out_infinite]" />
-          </div>
-          <Icon className="w-8 h-8 text-primary" />
-          <span className="text-xs md:text-sm text-center font-semibold text-foreground">
-            {title}
-          </span>
-        </Button>
-      </div>
-    );
-  };
-  
   const FeatureHub = () => {
     const features = [
       { icon: Sparkles, title: "AI Summary", onClick: handleOpenSummary },
@@ -462,13 +436,22 @@ setIsQnaLoading(true);
                 {/* Left Column */}
                 <div className="flex flex-col items-center justify-center gap-12 md:gap-20">
                     {leftFeatures.map((feature, index) => (
-                        <FeatureNode 
+                        <Button
                             key={feature.title}
-                            fref={leftFeatureRefs[index]}
-                            icon={feature.icon}
-                            title={feature.title}
+                            ref={leftFeatureRefs[index]}
                             onClick={feature.onClick}
-                        />
+                            className="group relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out hover:scale-110"
+                            variant="outline"
+                            style={{ boxShadow: `0 0 15px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)` }}
+                        >
+                            <div className="absolute inset-0 rounded-full overflow-hidden">
+                                <div className="absolute top-0 left-1/2 w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_4s_ease-in-out_infinite]" />
+                            </div>
+                            <feature.icon className="w-8 h-8 text-primary" />
+                            <span className="text-sm text-center font-semibold text-foreground">
+                                {feature.title}
+                            </span>
+                        </Button>
                     ))}
                 </div>
 
@@ -493,13 +476,22 @@ setIsQnaLoading(true);
                 {/* Right Column */}
                 <div className="flex flex-col items-center justify-center gap-12 md:gap-20">
                     {rightFeatures.map((feature, index) => (
-                        <FeatureNode 
+                         <Button
                             key={feature.title}
-                            fref={rightFeatureRefs[index]}
-                            icon={feature.icon}
-                            title={feature.title}
+                            ref={rightFeatureRefs[index]}
                             onClick={feature.onClick}
-                        />
+                            className="group relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out hover:scale-110"
+                            variant="outline"
+                            style={{ boxShadow: `0 0 15px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)` }}
+                        >
+                            <div className="absolute inset-0 rounded-full overflow-hidden">
+                                <div className="absolute top-0 left-1/2 w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_4s_ease-in-out_infinite]" />
+                            </div>
+                            <feature.icon className="w-8 h-8 text-primary" />
+                            <span className="text-sm text-center font-semibold text-foreground">
+                                {feature.title}
+                            </span>
+                        </Button>
                     ))}
                 </div>
 
@@ -512,7 +504,7 @@ setIsQnaLoading(true);
                         toRef={ref}
                         duration={3}
                         delay={index * 0.2}
-                        curvature={index < 3 ? 40 : -40} // Curve left nodes one way, right nodes the other
+                        curvature={index < 3 ? 40 : -40}
                     />
                 ))}
             </div>
@@ -521,58 +513,70 @@ setIsQnaLoading(true);
 };
 
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center">
-        <Loader2 className="w-16 h-16 animate-spin text-primary mb-8" />
-        <div className="h-12 flex items-center justify-center">
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen text-center">
+          <Loader2 className="w-16 h-16 animate-spin text-primary mb-8" />
+          <div className="h-12 flex items-center justify-center">
             <VaporizeTextCycle
-                texts={["Extracting text...", "Analyzing content...", "Almost there..."]}
-                font={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "24px",
-                    fontWeight: 600
-                }}
-                color={`hsl(var(--foreground))`}
-                spread={1}
-                density={5}
-                animation={{
-                    vaporizeDuration: 1.5,
-                    fadeInDuration: 0.8,
-                    waitDuration: 1
-                }}
-                direction="left-to-right"
-                alignment="center"
-                tag={Tag.P}
+              texts={["Extracting text...", "Analyzing content...", "Almost there..."]}
+              font={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: "24px",
+                fontWeight: 600,
+              }}
+              color={`hsl(var(--foreground))`}
+              spread={1}
+              density={5}
+              animation={{
+                vaporizeDuration: 1.5,
+                fadeInDuration: 0.8,
+                waitDuration: 1,
+              }}
+              direction="left-to-right"
+              alignment="center"
+              tag={Tag.P}
             />
+          </div>
+          <p className="text-muted-foreground mt-2">{fileName}</p>
         </div>
-        <p className="text-muted-foreground mt-2">{fileName}</p>
-      </div>
-    );
+      );
+    }
+
+    if (pdfText) {
+      return (
+        <div className="flex-1 w-full h-full">
+          <FeatureHub />
+        </div>
+      );
+    }
+    
+    if (showUploader) {
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <Uploader />
+          </div>
+        )
+    }
+    
+    return <SplashScreen onGetStarted={() => setShowUploader(true)} />;
   }
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col">
-      {!pdfText && (
-        <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 border-b bg-background/80 backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold">NoteWise AI</h1>
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+    <div className="relative min-h-screen w-full flex flex-col bg-background">
+      <div className="absolute inset-0 w-full h-full">
+        {renderContent()}
+      </div>
+
+      <header className="absolute top-0 z-50 flex items-center justify-end h-16 px-4 w-full">
+        {!pdfText ? (
+           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
-        </header>
-      )}
-
-      {pdfText && (
-        <header className="absolute top-0 z-50 flex items-center justify-between h-16 px-4 w-full bg-transparent">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold">NoteWise AI</h1>
-          </div>
+        ) : (
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -584,30 +588,12 @@ setIsQnaLoading(true);
               Start Over
             </Button>
           </div>
-        </header>
-      )}
-      
-      <main className="flex-1 flex flex-col">
-        {!showUploader && !pdfText && (
-          <SplashScreen onGetStarted={() => setShowUploader(true)} />
         )}
-        
-        {showUploader && !pdfText && (
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <Uploader />
-          </div>
-        )}
-        
-        {pdfText && (
-          <div className="flex-1">
-             <FeatureHub />
-          </div>
-        )}
-      </main>
+      </header>
 
       {!pdfText && showUploader && (
-        <footer className="text-center p-4 text-sm text-muted-foreground">
-            Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
+        <footer className="absolute bottom-0 w-full text-center p-4 text-sm text-muted-foreground">
+          Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
         </footer>
       )}
       
