@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect, FormEvent, createRef } from 'react';
+import { useState, useRef, ChangeEvent, useEffect, FormEvent } from 'react';
 import {
   UploadCloud,
   FileText,
@@ -23,7 +23,7 @@ import {
   Moon,
   StopCircle,
 } from 'lucide-react';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,7 +47,6 @@ import { realTimeAIInteraction } from '@/ai/flows/real-time-ai-interaction';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { generateFlashcards, GenerateFlashcardsOutput } from '@/ai/flows/generate-flashcards';
 import { generateSmartNotes } from '@/ai/flows/generate-smart-notes';
-import { AnimatedBeam } from '@/components/ui/animated-beam';
 
 type QuizItem = {
   question: string;
@@ -273,7 +272,7 @@ export function NoteWiseAIPage() {
     
     const newMessages: QnaMessage[] = [...qnaMessages, { role: 'user', content: question }];
     setQnaMessages(newMessages);
-setIsQnaLoading(true);
+    setIsQnaLoading(true);
 
     try {
       const result = await realTimeAIInteraction({ pdfContent: pdfText, userInput: question, history: qnaMessages });
@@ -408,108 +407,75 @@ setIsQnaLoading(true);
       <p className="text-xs text-muted-foreground mt-6">Max file size: 50MB. We promise to keep your data safe.</p>
     </div>
   );
-  
-const FeatureHub = () => {
+
+    const FeatureHub = () => {
     const features = [
-        { icon: Sparkles, title: "AI Summary", onClick: handleOpenSummary },
-        { icon: MessageSquare, title: "Talk to PDF", onClick: () => setActiveDialog('qna') },
-        { icon: PenSquare, title: "Smart Notes", onClick: () => setActiveDialog('smart-notes') },
-        { icon: HelpCircle, title: "Generate Quiz", onClick: () => setActiveDialog('quiz') },
-        { icon: Copy, title: "Flashcards", onClick: () => setActiveDialog('flashcards') },
+      { icon: Sparkles, title: 'AI Summary', onClick: handleOpenSummary },
+      { icon: MessageSquare, title: 'Talk to PDF', onClick: () => setActiveDialog('qna') },
+      { icon: PenSquare, title: 'Smart Notes', onClick: () => setActiveDialog('smart-notes') },
+      { icon: HelpCircle, title: 'Generate Quiz', onClick: () => setActiveDialog('quiz') },
+      { icon: Copy, title: 'Flashcards', onClick: () => setActiveDialog('flashcards') },
     ];
-    
-    const containerRef = useRef<HTMLDivElement>(null);
-    const centerRef = useRef<HTMLDivElement>(null);
-    const featureRefs = useRef(features.map(() => createRef<HTMLButtonElement>()));
-
-    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (containerRef.current) {
-                const rect = containerRef.current.getBoundingClientRect();
-                setDimensions({ width: rect.width, height: rect.height });
-            }
-        };
-
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const isMobile = dimensions.width < 768;
-    const radius = isMobile ? (Math.min(dimensions.width, dimensions.height) / 3) : 250;
-    const centerX = dimensions.width / 2;
-    const centerY = dimensions.height / 2;
-
-    const angleStep = (2 * Math.PI) / features.length;
-
-    const controls = useAnimation();
-
-    useEffect(() => {
-        controls.start(i => ({
-            transform: `translate(${centerX + radius * Math.cos(i * angleStep - Math.PI / 2) - 50}px, ${centerY + radius * Math.sin(i * angleStep - Math.PI / 2) - 50}px)`,
-            transition: { type: "spring", stiffness: 50, damping: 15, delay: i * 0.1 }
-        }));
-    }, [centerX, centerY, radius, angleStep, controls]);
 
     return (
-        <div ref={containerRef} className="relative w-full h-full overflow-hidden">
-             <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)' }} />
-
-            <div ref={centerRef} className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                <div 
-                    className="flex flex-col items-center justify-center p-4 rounded-full"
-                    style={{ 
-                        boxShadow: '0 0 20px #00ffc6, 0 0 40px #00ffc6, 0 0 60px #00ffc6',
-                        animation: 'pulse 2s infinite'
-                    }}
+      <div className="relative flex h-full w-full items-center justify-center">
+        <AnimatePresence>
+          {features.map((feature, i) => {
+            const angle = (i / features.length) * 2 * Math.PI - Math.PI / 2;
+            return (
+              <motion.div
+                key={feature.title}
+                className="absolute"
+                initial={{ opacity: 0, scale: 0.5, transform: 'translate(-50%, -50%)' }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  x: 'var(--x)',
+                  y: 'var(--y)',
+                  transition: {
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 20,
+                    delay: 0.5 + i * 0.1,
+                  },
+                }}
+                exit={{ opacity: 0, scale: 0 }}
+                whileHover={{ scale: 1.1 }}
+                style={
+                  {
+                    '--x': `calc(-50% + ${Math.cos(angle)} * 15rem)`,
+                    '--y': `calc(-50% + ${Math.sin(angle)} * 15rem)`,
+                  } as React.CSSProperties
+                }
+              >
+                <button
+                  onClick={feature.onClick}
+                  className="group flex h-28 w-28 flex-col items-center justify-center gap-2 rounded-full border-2 border-primary/20 bg-card/80 text-center shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-primary hover:shadow-primary/20"
                 >
-                    <Lightbulb className="w-10 h-10 text-[#00ffc6]" />
-                </div>
-                <h2 className="text-2xl font-bold mt-4 text-white text-center" style={{ textShadow: '0 0 10px #00ffc6' }}>
-                    Doc Received!
-                </h2>
-                <p className="text-muted-foreground text-center truncate max-w-xs">{fileName}</p>
+                  <feature.icon className="h-8 w-8 text-primary transition-transform duration-300 group-hover:scale-110" />
+                  <span className="text-xs font-semibold">{feature.title}</span>
+                </button>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+        <motion.div
+          className="z-10 flex flex-col items-center justify-center rounded-full p-4"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1, transition: { delay: 0.2 } }}
+        >
+          <div className="relative">
+            <div className="absolute -inset-2 animate-pulse rounded-full bg-primary/30 blur-xl" />
+            <div className="relative flex h-32 w-32 flex-col items-center justify-center rounded-full border-2 border-primary bg-background text-center">
+              <Lightbulb className="h-8 w-8 text-primary" />
+              <h2 className="mt-2 text-lg font-bold">Doc Received!</h2>
             </div>
-
-            {features.map((feature, i) => (
-                <motion.button
-                    key={feature.title}
-                    ref={featureRefs.current[i]}
-                    onClick={feature.onClick}
-                    custom={i}
-                    initial={{ transform: `translate(${centerX - 50}px, ${centerY - 50}px)` }}
-                    animate={controls}
-                    whileHover={{ scale: 1.1 }}
-                    className="absolute w-28 h-28 rounded-full flex flex-col items-center justify-center gap-1 text-white bg-black/30 backdrop-blur-sm"
-                    style={{
-                         boxShadow: '0 0 15px #00ffc6, inset 0 0 10px #00ffc6',
-                         border: '1px solid #00ffc6',
-                         animation: `float 6s ease-in-out infinite ${i * 0.5}s`
-                    }}
-                >
-                    <feature.icon className="w-7 h-7" />
-                    <span className="text-xs text-center">{feature.title}</span>
-                </motion.button>
-            ))}
-
-            {featureRefs.current.map((ref, i) => (
-                ref.current &&
-                <AnimatedBeam
-                    key={i}
-                    containerRef={containerRef}
-                    fromRef={centerRef}
-                    toRef={ref as React.RefObject<HTMLElement>}
-                    gradientStartColor="#8e2de2"
-                    gradientStopColor="#4a00e0"
-                    pathOpacity={0.3}
-                    duration={5}
-                />
-            ))}
-        </div>
+          </div>
+          <p className="mt-3 max-w-xs truncate text-sm text-muted-foreground">{fileName}</p>
+        </motion.div>
+      </div>
     );
-};
+  };
 
 
   const renderContent = () => {
@@ -562,7 +528,7 @@ const FeatureHub = () => {
     <div className="min-h-screen w-full flex flex-col bg-background relative">
       
       {pdfText ? (
-         <div className="absolute inset-0 w-full h-full">
+         <div className="absolute inset-0 w-full h-full animated-grid">
             <FeatureHub />
          </div>
       ) : (
