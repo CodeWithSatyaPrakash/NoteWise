@@ -907,5 +907,3 @@ export function NoteWiseAIPage() {
     </div>
   );
 }
-
-    
