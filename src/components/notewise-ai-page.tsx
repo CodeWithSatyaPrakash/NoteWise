@@ -281,6 +281,16 @@ export function NoteWiseAIPage() {
     toast({ title: 'Success', description: 'Notes downloaded successfully.' });
   };
 
+  const handleCopyNotes = () => {
+    if (!smartNotes) return;
+    navigator.clipboard.writeText(smartNotes).then(() => {
+        toast({ title: 'Success', description: 'Notes copied to clipboard.' });
+    }, (err) => {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to copy notes.' });
+        console.error('Could not copy text: ', err);
+    });
+  };
+
 
   const handleAskQuestion = async () => {
     if (!pdfText || !qnaInputRef.current?.value.trim()) return;
@@ -875,7 +885,7 @@ export function NoteWiseAIPage() {
                             <Label htmlFor="long-regen">Long</Label>                          </div>
                       </RadioGroup>
                       <div className="flex gap-2 sm:ml-auto">
-                        <Button variant="ghost" size="sm" onClick={() => smartNotes && navigator.clipboard.writeText(smartNotes)}>
+                        <Button variant="ghost" size="sm" onClick={handleCopyNotes}>
                             <Clipboard className="w-4 h-4 mr-2" /> Copy
                         </Button>
                         <Button variant="ghost" size="sm" onClick={handleDownloadNotes}>
