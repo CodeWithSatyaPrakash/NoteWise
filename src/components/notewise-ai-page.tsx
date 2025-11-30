@@ -412,24 +412,30 @@ export function NoteWiseAIPage() {
     const features = [
       { icon: Sparkles, title: 'AI Summary', onClick: handleOpenSummary },
       { icon: MessageSquare, title: 'Talk to PDF', onClick: () => setActiveDialog('qna') },
-      { icon: PenSquare, title: 'Smart Notes', onClick: () => setActiveDialog('smart-notes') },
       { icon: HelpCircle, title: 'Generate Quiz', onClick: () => setActiveDialog('quiz') },
+      { icon: PenSquare, title: 'Smart Notes', onClick: () => setActiveDialog('smart-notes') },
       { icon: Copy, title: 'Flashcards', onClick: () => setActiveDialog('flashcards') },
     ];
+
     const [radius, setRadius] = useState(240);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const updateRadius = () => {
-            const newRadius = window.innerWidth < 768 ? Math.min(window.innerWidth, window.innerHeight) / 3 : 240;
-            setRadius(newRadius);
+          if (containerRef.current) {
+            const size = Math.min(containerRef.current.offsetWidth, containerRef.current.offsetHeight);
+            const isMobile = window.innerWidth < 768;
+            setRadius(isMobile ? size / 3.5 : size / 3);
+          }
         };
+
         updateRadius();
         window.addEventListener('resize', updateRadius);
         return () => window.removeEventListener('resize', updateRadius);
     }, []);
 
     return (
-      <div className="relative flex h-full w-full items-center justify-center">
+      <div ref={containerRef} className="relative flex h-full w-full items-center justify-center">
         <AnimatePresence>
           {features.map((feature, i) => {
             const angle = (i / features.length) * 2 * Math.PI - Math.PI / 2;
@@ -439,7 +445,7 @@ export function NoteWiseAIPage() {
               <motion.div
                 key={feature.title}
                 className="absolute"
-                initial={{ opacity: 0, scale: 0.5, x: 0, y: 0 }}
+                initial={{ opacity: 0, scale: 0.5 }}
                 animate={{
                   opacity: 1,
                   scale: 1,
@@ -453,7 +459,8 @@ export function NoteWiseAIPage() {
                   },
                 }}
                 exit={{ opacity: 0, scale: 0 }}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, transition: { duration: 0.2 } }}
+                whileTap={{ scale: 0.95 }}
               >
                 <button
                   onClick={feature.onClick}
@@ -467,7 +474,7 @@ export function NoteWiseAIPage() {
           })}
         </AnimatePresence>
         <motion.div
-          className="z-10 flex flex-col items-center justify-center rounded-full p-4"
+          className="z-10 flex flex-col items-center justify-center rounded-full p-4 text-center"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1, transition: { delay: 0.2 } }}
         >
@@ -483,7 +490,6 @@ export function NoteWiseAIPage() {
       </div>
     );
   };
-
 
   const renderContent = () => {
     if (isLoading) {
@@ -532,36 +538,34 @@ export function NoteWiseAIPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-background relative">
-      
-      {pdfText ? (
-         <main className="flex-1 flex items-center justify-center p-4">
-            <FeatureHub />
-         </main>
-      ) : (
-        <div className="flex-1 flex flex-col">{renderContent()}</div>
-      )}
-
+    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] relative">
+      <div className="absolute top-0 left-0 w-full h-full">
+        {pdfText ? (
+          <main className="w-full h-full">
+              <FeatureHub />
+          </main>
+        ) : (
+          <div className="flex-1 flex flex-col h-full">{renderContent()}</div>
+        )}
+      </div>
 
       <header className="absolute top-0 z-50 flex items-center justify-end h-16 px-4 w-full">
-        {pdfText && (
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-            {pdfText && (
-                <Button variant="outline" size="sm" onClick={handleReset}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Start Over
-                </Button>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+          {pdfText && (
+              <Button variant="outline" size="sm" onClick={handleReset}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Start Over
+              </Button>
+          )}
+        </div>
       </header>
 
-      {!pdfText && showUploader && (
+      {!pdfText && !showUploader && (
         <footer className="absolute bottom-0 w-full text-center p-4 text-sm text-muted-foreground">
           Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
         </footer>
