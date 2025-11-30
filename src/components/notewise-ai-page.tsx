@@ -47,6 +47,7 @@ import { realTimeAIInteraction } from '@/ai/flows/real-time-ai-interaction';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { generateFlashcards, GenerateFlashcardsOutput } from '@/ai/flows/generate-flashcards';
 import { generateSmartNotes } from '@/ai/flows/generate-smart-notes';
+import { SparklesCore } from './ui/sparkles';
 
 type QuizItem = {
   question: string;
@@ -417,15 +418,15 @@ export function NoteWiseAIPage() {
       { icon: Copy, title: 'Flashcards', onClick: () => setActiveDialog('flashcards') },
     ];
 
-    const [radius, setRadius] = useState(240);
     const containerRef = useRef<HTMLDivElement>(null);
+    const [radius, setRadius] = useState(240);
 
     useEffect(() => {
         const updateRadius = () => {
           if (containerRef.current) {
             const size = Math.min(containerRef.current.offsetWidth, containerRef.current.offsetHeight);
             const isMobile = window.innerWidth < 768;
-            setRadius(isMobile ? size / 3.5 : size / 3);
+            setRadius(isMobile ? size / 3 : size / 2.5);
           }
         };
 
@@ -538,7 +539,21 @@ export function NoteWiseAIPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] relative">
+    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full -z-10">
+         <SparklesCore
+          id="tsparticlesfullpage"
+          background="transparent"
+          minSize={0.2}
+          maxSize={0.8}
+          particleDensity={40}
+          className="w-full h-full"
+          particleColor="hsl(var(--primary))"
+          speed={0.5}
+          direction="bottom"
+        />
+      </div>
+
       <div className="absolute top-0 left-0 w-full h-full">
         {pdfText ? (
           <main className="w-full h-full">

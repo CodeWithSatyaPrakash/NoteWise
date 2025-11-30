@@ -2,7 +2,7 @@
 import React, { useId, useMemo } from "react";
 import { useEffect, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
-import type { Container, SingleOrMultiple } from "@tsparticles/engine";
+import type { Container, SingleOrMultiple, MoveDirection } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
 import { cn } from "@/lib/utils";
 import { motion, useAnimation } from "framer-motion";
@@ -17,6 +17,7 @@ type ParticlesProps = {
   speed?: number;
   particleColor?: string;
   particleDensity?: number;
+  direction?: MoveDirection;
 };
 export const SparklesCore = (props: ParticlesProps) => {
   const {
@@ -28,6 +29,7 @@ export const SparklesCore = (props: ParticlesProps) => {
     speed,
     particleColor,
     particleDensity,
+    direction,
   } = props;
   const [init, setInit] = useState(false);
   useEffect(() => {
@@ -181,7 +183,7 @@ export const SparklesCore = (props: ParticlesProps) => {
                 },
                 decay: 0,
                 distance: {},
-                direction: "none",
+                direction: direction ?? "none",
                 drift: 0,
                 enable: true,
                 gravity: {
