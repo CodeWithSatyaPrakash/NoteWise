@@ -416,22 +416,35 @@ export function NoteWiseAIPage() {
       { icon: HelpCircle, title: 'Generate Quiz', onClick: () => setActiveDialog('quiz') },
       { icon: Copy, title: 'Flashcards', onClick: () => setActiveDialog('flashcards') },
     ];
+    const [radius, setRadius] = useState(240);
+
+    useEffect(() => {
+        const updateRadius = () => {
+            const newRadius = window.innerWidth < 768 ? Math.min(window.innerWidth, window.innerHeight) / 2.5 : 240;
+            setRadius(newRadius);
+        };
+        updateRadius();
+        window.addEventListener('resize', updateRadius);
+        return () => window.removeEventListener('resize', updateRadius);
+    }, []);
 
     return (
       <div className="relative flex h-full w-full items-center justify-center">
         <AnimatePresence>
           {features.map((feature, i) => {
             const angle = (i / features.length) * 2 * Math.PI - Math.PI / 2;
+            const x = `calc(-50% + ${Math.cos(angle) * radius}px)`;
+            const y = `calc(-50% + ${Math.sin(angle) * radius}px)`;
             return (
               <motion.div
                 key={feature.title}
                 className="absolute"
-                initial={{ opacity: 0, scale: 0.5, transform: 'translate(-50%, -50%)' }}
+                initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-50%' }}
                 animate={{
                   opacity: 1,
                   scale: 1,
-                  x: 'var(--x)',
-                  y: 'var(--y)',
+                  x: x,
+                  y: y,
                   transition: {
                     type: 'spring',
                     stiffness: 300,
@@ -441,12 +454,6 @@ export function NoteWiseAIPage() {
                 }}
                 exit={{ opacity: 0, scale: 0 }}
                 whileHover={{ scale: 1.1 }}
-                style={
-                  {
-                    '--x': `calc(-50% + ${Math.cos(angle)} * 15rem)`,
-                    '--y': `calc(-50% + ${Math.sin(angle)} * 15rem)`,
-                  } as React.CSSProperties
-                }
               >
                 <button
                   onClick={feature.onClick}
@@ -528,16 +535,16 @@ export function NoteWiseAIPage() {
     <div className="min-h-screen w-full flex flex-col bg-background relative">
       
       {pdfText ? (
-         <div className="absolute inset-0 w-full h-full animated-grid">
+         <main className="flex-1 flex items-center justify-center p-4">
             <FeatureHub />
-         </div>
+         </main>
       ) : (
         <div className="flex-1 flex flex-col">{renderContent()}</div>
       )}
 
 
       <header className="absolute top-0 z-50 flex items-center justify-end h-16 px-4 w-full">
-        {(!showUploader && !pdfText) ? null : (
+        {(!pdfText) ? null : (
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
