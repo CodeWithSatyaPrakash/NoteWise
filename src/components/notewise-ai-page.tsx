@@ -22,6 +22,7 @@ import {
   Sun,
   Moon,
   StopCircle,
+  Download,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -265,6 +266,21 @@ export function NoteWiseAIPage() {
     }
   };
   
+  const handleDownloadNotes = () => {
+    if (!smartNotes) return;
+
+    const blob = new Blob([smartNotes], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `smart-notes-${noteLength}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast({ title: 'Success', description: 'Notes downloaded successfully.' });
+  };
+
 
   const handleAskQuestion = async () => {
     if (!pdfText || !qnaInputRef.current?.value.trim()) return;
@@ -861,6 +877,9 @@ export function NoteWiseAIPage() {
                       <div className="flex gap-2 sm:ml-auto">
                         <Button variant="ghost" size="sm" onClick={() => smartNotes && navigator.clipboard.writeText(smartNotes)}>
                             <Clipboard className="w-4 h-4 mr-2" /> Copy
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={handleDownloadNotes}>
+                            <Download className="w-4 h-4 mr-2" /> Download
                         </Button>
                         <Button onClick={handleGenerateSmartNotes} variant="secondary" size="sm" disabled={isSmartNotesLoading}>
                             {isSmartNotesLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2"/>}
