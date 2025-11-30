@@ -23,6 +23,7 @@ import {
   Moon,
   StopCircle,
 } from 'lucide-react';
+import { motion, useAnimation } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,8 +39,6 @@ import { useTheme } from 'next-themes';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import VaporizeTextCycle, { Tag } from '@/components/ui/vapour-text-effect';
 import { SplashScreen } from '@/components/splash-screen';
-import { AnimatedBeam } from '@/components/ui/animated-beam';
-
 
 import { pdfUploadAndSummarize } from '@/ai/flows/pdf-upload-and-summarize';
 import { extractTextFromPdf } from '@/ai/flows/extract-text-from-pdf';
@@ -48,6 +47,7 @@ import { realTimeAIInteraction } from '@/ai/flows/real-time-ai-interaction';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { generateFlashcards, GenerateFlashcardsOutput } from '@/ai/flows/generate-flashcards';
 import { generateSmartNotes } from '@/ai/flows/generate-smart-notes';
+import { AnimatedBeam } from '@/components/ui/animated-beam';
 
 type QuizItem = {
   question: string;
@@ -409,105 +409,104 @@ setIsQnaLoading(true);
     </div>
   );
   
-  const FeatureHub = () => {
+const FeatureHub = () => {
     const features = [
-      { icon: Sparkles, title: "AI Summary", onClick: handleOpenSummary },
-      { icon: MessageSquare, title: "Talk to PDF", onClick: () => setActiveDialog('qna') },
-      { icon: PenSquare, title: "Smart Notes", onClick: () => setActiveDialog('smart-notes') },
-      { icon: HelpCircle, title: "Generate Quiz", onClick: () => setActiveDialog('quiz') },
-      { icon: Copy, title: "Flashcards", onClick: () => setActiveDialog('flashcards') },
+        { icon: Sparkles, title: "AI Summary", onClick: handleOpenSummary },
+        { icon: MessageSquare, title: "Talk to PDF", onClick: () => setActiveDialog('qna') },
+        { icon: PenSquare, title: "Smart Notes", onClick: () => setActiveDialog('smart-notes') },
+        { icon: HelpCircle, title: "Generate Quiz", onClick: () => setActiveDialog('quiz') },
+        { icon: Copy, title: "Flashcards", onClick: () => setActiveDialog('flashcards') },
     ];
     
-    const leftFeatures = features.slice(0, 3);
-    const rightFeatures = features.slice(3);
-
     const containerRef = useRef<HTMLDivElement>(null);
     const centerRef = useRef<HTMLDivElement>(null);
-    
     const featureRefs = useRef(features.map(() => createRef<HTMLButtonElement>()));
-    const leftFeatureRefs = featureRefs.current.slice(0, 3);
-    const rightFeatureRefs = featureRefs.current.slice(3);
+
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                setDimensions({ width: rect.width, height: rect.height });
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const isMobile = dimensions.width < 768;
+    const radius = isMobile ? Math.min(dimensions.width, dimensions.height) / 3 : Math.min(dimensions.width, dimensions.height) / 3.5;
+    const centerX = dimensions.width / 2;
+    const centerY = dimensions.height / 2;
+
+    const angleStep = (2 * Math.PI) / features.length;
+
+    const controls = useAnimation();
+
+    useEffect(() => {
+        controls.start(i => ({
+            transform: `translate(${centerX + radius * Math.cos(i * angleStep - Math.PI / 2) - 50}px, ${centerY + radius * Math.sin(i * angleStep - Math.PI / 2) - 50}px)`,
+            transition: { type: "spring", stiffness: 50, damping: 15, delay: i * 0.1 }
+        }));
+    }, [centerX, centerY, radius, angleStep, controls]);
 
     return (
-        <div ref={containerRef} className="relative flex h-full w-full items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 -z-10 h-full w-full bg-background animated-grid"></div>
+        <div ref={containerRef} className="relative w-full h-full overflow-hidden">
+             <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)' }} />
 
-            <div className="relative flex w-full max-w-4xl items-center justify-between px-4 md:px-8">
-                {/* Left Column */}
-                <div className="flex flex-col items-center justify-center gap-12 md:gap-20">
-                    {leftFeatures.map((feature, index) => (
-                        <Button
-                            key={feature.title}
-                            ref={leftFeatureRefs[index]}
-                            onClick={feature.onClick}
-                            className="group relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out hover:scale-110"
-                            variant="outline"
-                            style={{ boxShadow: `0 0 15px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)` }}
-                        >
-                            <div className="absolute inset-0 rounded-full overflow-hidden">
-                                <div className="absolute top-0 left-1/2 w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_4s_ease-in-out_infinite]" />
-                            </div>
-                            <feature.icon className="w-8 h-8 text-primary" />
-                            <span className="text-sm text-center font-semibold text-foreground">
-                                {feature.title}
-                            </span>
-                        </Button>
-                    ))}
+            <div ref={centerRef} className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                <div 
+                    className="flex flex-col items-center justify-center p-4 rounded-full"
+                    style={{ 
+                        boxShadow: '0 0 20px #00ffc6, 0 0 40px #00ffc6, 0 0 60px #00ffc6',
+                        animation: 'pulse 2s infinite'
+                    }}
+                >
+                    <Lightbulb className="w-10 h-10 text-[#00ffc6]" />
                 </div>
-
-                {/* Center Hub */}
-                <div ref={centerRef} className="z-10 flex flex-col items-center text-center">
-                    <div className="mx-auto bg-primary/20 p-4 rounded-full w-fit border-8 border-primary/30 animate-pulse"
-                        style={{
-                            animationDuration: '2s',
-                            boxShadow: `0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.4)`
-                        }}>
-                        <Lightbulb className="w-10 h-10 text-primary" />
-                    </div>
-                    <h2 
-                        className="text-2xl font-bold mt-4" 
-                        style={{ animation: 'float-glow 4s ease-in-out infinite' }}
-                    >
-                        Doc Received!
-                    </h2>
-                    <p className="text-muted-foreground truncate max-w-xs">{fileName}</p>
-                </div>
-
-                {/* Right Column */}
-                <div className="flex flex-col items-center justify-center gap-12 md:gap-20">
-                    {rightFeatures.map((feature, index) => (
-                         <Button
-                            key={feature.title}
-                            ref={rightFeatureRefs[index]}
-                            onClick={feature.onClick}
-                            className="group relative rounded-full w-32 h-32 flex-col gap-2 shadow-lg transition-transform duration-300 ease-in-out hover:scale-110"
-                            variant="outline"
-                            style={{ boxShadow: `0 0 15px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)` }}
-                        >
-                            <div className="absolute inset-0 rounded-full overflow-hidden">
-                                <div className="absolute top-0 left-1/2 w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_4s_ease-in-out_infinite]" />
-                            </div>
-                            <feature.icon className="w-8 h-8 text-primary" />
-                            <span className="text-sm text-center font-semibold text-foreground">
-                                {feature.title}
-                            </span>
-                        </Button>
-                    ))}
-                </div>
-
-                {/* Beams */}
-                {featureRefs.current.map((ref, index) => (
-                    <AnimatedBeam
-                        key={index}
-                        containerRef={containerRef}
-                        fromRef={centerRef}
-                        toRef={ref}
-                        duration={3}
-                        delay={index * 0.2}
-                        curvature={index < 3 ? 40 : -40}
-                    />
-                ))}
+                <h2 className="text-2xl font-bold mt-4 text-white text-center" style={{ textShadow: '0 0 10px #00ffc6' }}>
+                    Doc Received!
+                </h2>
+                <p className="text-muted-foreground text-center truncate max-w-xs">{fileName}</p>
             </div>
+
+            {features.map((feature, i) => (
+                <motion.button
+                    key={feature.title}
+                    ref={featureRefs.current[i]}
+                    onClick={feature.onClick}
+                    custom={i}
+                    initial={{ transform: `translate(${centerX - 50}px, ${centerY - 50}px)` }}
+                    animate={controls}
+                    whileHover={{ scale: 1.1 }}
+                    className="absolute w-28 h-28 rounded-full flex flex-col items-center justify-center gap-1 text-white bg-black/30 backdrop-blur-sm"
+                    style={{
+                         boxShadow: '0 0 15px #00ffc6, inset 0 0 10px #00ffc6',
+                         border: '1px solid #00ffc6',
+                         animation: `float 6s ease-in-out infinite ${i * 0.5}s`
+                    }}
+                >
+                    <feature.icon className="w-7 h-7" />
+                    <span className="text-xs text-center">{feature.title}</span>
+                </motion.button>
+            ))}
+
+            {featureRefs.current.map((ref, i) => (
+                ref.current &&
+                <AnimatedBeam
+                    key={i}
+                    containerRef={containerRef}
+                    fromRef={centerRef}
+                    toRef={ref as React.RefObject<HTMLElement>}
+                    gradientStartColor="#8e2de2"
+                    gradientStopColor="#4a00e0"
+                    pathOpacity={0.3}
+                    duration={5}
+                />
+            ))}
         </div>
     );
 };
@@ -543,50 +542,48 @@ setIsQnaLoading(true);
         </div>
       );
     }
-
-    if (pdfText) {
-      return (
-        <div className="flex-1 w-full h-full">
-          <FeatureHub />
-        </div>
-      );
-    }
     
-    if (showUploader) {
+    if (showUploader && !pdfText) {
         return (
-          <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="flex-1 flex flex-col items-center justify-center h-full">
             <Uploader />
           </div>
         )
     }
     
-    return <SplashScreen onGetStarted={() => setShowUploader(true)} />;
+    if(!showUploader && !pdfText) {
+        return <SplashScreen onGetStarted={() => setShowUploader(true)} />;
+    }
+
+    return null;
   }
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col bg-background">
-      <div className="absolute inset-0 w-full h-full">
-        {renderContent()}
-      </div>
+    <div className="min-h-screen w-full flex flex-col bg-background relative">
+      
+      {pdfText ? (
+         <div className="absolute inset-0 w-full h-full">
+            <FeatureHub />
+         </div>
+      ) : (
+        <div className="flex-1 flex flex-col">{renderContent()}</div>
+      )}
+
 
       <header className="absolute top-0 z-50 flex items-center justify-end h-16 px-4 w-full">
-        {!pdfText ? (
-           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-        ) : (
+        {!showUploader && !pdfText ? null : (
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Start Over
-            </Button>
+            {pdfText && (
+                <Button variant="outline" size="sm" onClick={handleReset}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Start Over
+                </Button>
+            )}
           </div>
         )}
       </header>
