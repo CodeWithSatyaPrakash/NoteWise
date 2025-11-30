@@ -539,7 +539,7 @@ export function NoteWiseAIPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] relative overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-background-start to-background-end relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full -z-10">
          <SparklesCore
           id="tsparticlesfullpage"
@@ -880,3 +880,5 @@ export function NoteWiseAIPage() {
     </div>
   );
 }
+
+    

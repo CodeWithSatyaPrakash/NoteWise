@@ -24,6 +24,9 @@
     --input: 180 25% 88%;
     --ring: 180 100% 25.1%;
     --radius: 0.5rem;
+
+    --background-start-rgb: 255, 255, 255;
+    --background-end-rgb: 240, 240, 240;
   }
  
   .dark {
@@ -46,6 +49,9 @@
     --border: 180 25% 22%;
     --input: 180 25% 20%;
     --ring: 180 80% 50%;
+
+    --background-start-rgb: 10, 10, 10;
+    --background-end-rgb: 26, 26, 26;
   }
 }
  
@@ -108,4 +114,6 @@
         transform: translateY(-10px);
     }
 }
+    
+
     
