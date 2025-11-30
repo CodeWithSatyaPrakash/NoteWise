@@ -438,7 +438,7 @@ const FeatureHub = () => {
     }, []);
 
     const isMobile = dimensions.width < 768;
-    const radius = isMobile ? Math.min(dimensions.width, dimensions.height) / 3 : Math.min(dimensions.width, dimensions.height) / 3.5;
+    const radius = isMobile ? (Math.min(dimensions.width, dimensions.height) / 3) : 250;
     const centerX = dimensions.width / 2;
     const centerY = dimensions.height / 2;
 
@@ -571,7 +571,7 @@ const FeatureHub = () => {
 
 
       <header className="absolute top-0 z-50 flex items-center justify-end h-16 px-4 w-full">
-        {!showUploader && !pdfText ? null : (
+        {(!showUploader && !pdfText) ? null : (
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
