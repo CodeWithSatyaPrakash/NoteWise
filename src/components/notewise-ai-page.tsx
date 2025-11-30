@@ -580,11 +580,9 @@ export function NoteWiseAIPage() {
         </div>
       </header>
 
-      {!pdfText && !showUploader && (
-        <footer className="absolute bottom-0 w-full text-center p-4 text-sm text-muted-foreground">
-          Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
-        </footer>
-      )}
+      <footer className="absolute bottom-0 w-full text-center p-4 text-sm text-muted-foreground">
+        Designed & engineered by Satya. Have feedback or need help? <a href="mailto:satyaprakashmohanty97@gmail.com" className="underline hover:text-primary">Contact me</a>.
+      </footer>
       
       {/* Dialog for AI Summary */}
       <Dialog open={activeDialog === 'summary'} onOpenChange={(v) => { if (!v) { setActiveDialog(null); handleStopTts(); } }}>
