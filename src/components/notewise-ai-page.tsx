@@ -880,5 +880,3 @@ export function NoteWiseAIPage() {
     </div>
   );
 }
-
-    
