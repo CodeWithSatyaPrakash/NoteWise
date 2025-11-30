@@ -67,7 +67,7 @@ type Flashcard = GenerateFlashcardsOutput['flashcards'][0];
 type FeatureDialog = 'summary' | 'quiz' | 'qna' | 'flashcards' | 'smart-notes' | null;
 
 const isOverloadedError = (e: any) => {
-    return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'));
+    return e instanceof Error && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded') || e.message.toLowerCase().includes('request body is too large'));
 }
 
 export function NoteWiseAIPage() {
@@ -907,3 +907,5 @@ export function NoteWiseAIPage() {
     </div>
   );
 }
+
+    
