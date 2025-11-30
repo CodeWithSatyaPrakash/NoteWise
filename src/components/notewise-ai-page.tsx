@@ -420,7 +420,7 @@ export function NoteWiseAIPage() {
 
     useEffect(() => {
         const updateRadius = () => {
-            const newRadius = window.innerWidth < 768 ? Math.min(window.innerWidth, window.innerHeight) / 2.5 : 240;
+            const newRadius = window.innerWidth < 768 ? Math.min(window.innerWidth, window.innerHeight) / 3 : 240;
             setRadius(newRadius);
         };
         updateRadius();
@@ -433,13 +433,13 @@ export function NoteWiseAIPage() {
         <AnimatePresence>
           {features.map((feature, i) => {
             const angle = (i / features.length) * 2 * Math.PI - Math.PI / 2;
-            const x = `calc(-50% + ${Math.cos(angle) * radius}px)`;
-            const y = `calc(-50% + ${Math.sin(angle) * radius}px)`;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
             return (
               <motion.div
                 key={feature.title}
                 className="absolute"
-                initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-50%' }}
+                initial={{ opacity: 0, scale: 0.5, x: 0, y: 0 }}
                 animate={{
                   opacity: 1,
                   scale: 1,
@@ -544,7 +544,7 @@ export function NoteWiseAIPage() {
 
 
       <header className="absolute top-0 z-50 flex items-center justify-end h-16 px-4 w-full">
-        {(!pdfText) ? null : (
+        {pdfText && (
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
