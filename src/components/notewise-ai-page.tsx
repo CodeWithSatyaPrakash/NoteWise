@@ -174,8 +174,8 @@ export function NoteWiseAIPage() {
         toast({ variant: 'destructive', title: 'Invalid File Type', description: 'Please upload a PDF file.' });
         return;
       }
-      if (file.size > 4 * 1024 * 1024) { // 4MB limit for Vercel
-        toast({ variant: 'destructive', title: 'File Exceeds 4MB Limit', description: 'Please upload a PDF smaller than 4MB.' });
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit
+        toast({ variant: 'destructive', title: 'File Exceeds 50MB Limit', description: 'Please upload a PDF smaller than 50MB.' });
         return;
       }
       handleFileUpload(file);
@@ -434,7 +434,7 @@ export function NoteWiseAIPage() {
         </div>
         <input id="file-upload" type="file" className="sr-only" accept="application/pdf" onChange={handleFileChange} />
       </label>
-      <p className="text-xs text-muted-foreground mt-6">Max file size: 4MB. We promise to keep your data safe.</p>
+      <p className="text-xs text-muted-foreground mt-6">Max file size: 50MB. We promise to keep your data safe.</p>
     </div>
   );
 
@@ -910,5 +910,3 @@ export function NoteWiseAIPage() {
     </div>
   );
 }
-
-    
