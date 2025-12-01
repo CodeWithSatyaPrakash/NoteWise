@@ -49,6 +49,7 @@ import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { generateFlashcards, GenerateFlashcardsOutput } from '@/ai/flows/generate-flashcards';
 import { generateSmartNotes } from '@/ai/flows/generate-smart-notes';
 import { SparklesCore } from './ui/sparkles';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type QuizItem = {
   question: string;
@@ -109,6 +110,8 @@ export function NoteWiseAIPage() {
   const [noteLength, setNoteLength] = useState<'short' | 'long'>('short');
 
   const [activeDialog, setActiveDialog] = useState<FeatureDialog>(null);
+  const isMobile = useIsMobile();
+
 
   useEffect(() => {
     if (quiz && quizScore === null) {
@@ -567,7 +570,7 @@ export function NoteWiseAIPage() {
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-background-start to-background-end relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full -z-10">
-         <SparklesCore
+         {!isMobile && <SparklesCore
           id="tsparticlesfullpage"
           background="transparent"
           minSize={0.2}
@@ -577,7 +580,7 @@ export function NoteWiseAIPage() {
           particleColor="hsl(var(--primary))"
           speed={0.5}
           direction="bottom"
-        />
+        />}
       </div>
 
       <div className="absolute top-0 left-0 w-full h-full">
